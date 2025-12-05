@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Entregas</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <img src="/cropped-logo_tr2-288x67.png" alt="Logo Empresa" class="logo">
+            <span class="app-name">Registro de Entregas</span>
+        </div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="search" placeholder="Buscar registros..." class="search-input">
+                <div class="filter-container">
+                    <button class="filter-btn" title="Filtrar" id="filterToggleBtn">⚙️</button>
+                    <div class="filter-dropdown" id="filterDropdown">
+                        <ul>
+                            <li><a href="#" data-filter="region">Región</a></li>
+                            <li><a href="#" data-filter="comuna">Comuna</a></li>
+                            <li><a href="#" data-filter="nombre">Nombre</a></li>
+                            <li><a href="#" data-filter="apellido">Apellido</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#" data-filter="az">Orden Alfabético</a></li>
+                            <li><a href="#" data-filter="date-desc">Fecha: Mayor a Menor</a></li>
+                            <li><a href="#" data-filter="date-asc">Fecha: Menor a Mayor</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-container">
+            <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+        </div>
+    </header>
+
+    <main class="main-layout">
+        <section class="content-area">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Nuevos Registros</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                </tr>
+                                <tr>
+                                    <td>#005</td>
+                                    <td>...</td>
+                                    <td>...</td>
+                                    <td>...</td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Destacados</h2>
+                </div>
+                <div class="card-body">
+                    <p class="placeholder-text">No hay registros destacados por el momento.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sidebar Area (Right Column) -->
+        <aside class="sidebar-area">
+            <div class="card sidebar-card">
+                <div class="card-header">
+                    <h3>Más Opciones</h3>
+                </div>
+                <div class="card-body action-buttons">
+                    <button class="btn btn-primary btn-block">Crear Registro</button>
+                    <button class="btn btn-secondary btn-block">Editar Registro</button>
+                    <button class="btn btn-secondary btn-block">Exportar Registros</button>
+                </div>
+            </div>
+
+            <div class="card sidebar-card">
+                <div class="card-header">
+                    <h3>Idioma</h3>
+                </div>
+                <div class="card-body">
+                    <select class="lang-select">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="main-footer">
+        <p>Copyright &copy; 2025 Making Tech</p>
+    </footer>
+
+
+    <!-- Login Modal Area -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bienvenido</h2>
+                <p>Por favor inicia sesión para continuar</p>
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label>Correo</label>
+                    <input type="email" placeholder="ejemplo@correo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                <div class="form-footer">
+                    <a href="#">¿Olvidaste tu contraseña?</a>
+                    <a href="#" id="registerLink">Registrarme</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
