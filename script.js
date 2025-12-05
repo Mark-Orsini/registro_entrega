@@ -1,109 +1,119 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Elements ---
-    const loginModal = document.getElementById('loginModal');
-    const loginForm = document.getElementById('loginForm');
-    const filterToggleBtn = document.getElementById('filterToggleBtn');
-    const filterDropdown = document.getElementById('filterDropdown');
-    const searchInput = document.querySelector('.search-input');
-    const langSelect = document.querySelector('.lang-select');
-    const actionBtns = document.querySelectorAll('.action-buttons .btn');
-    const loginBtnNav = document.getElementById('loginBtn');
+    // --- Elementos del DOM (Nombres en español) ---
+    const modalLogin = document.getElementById('modalLogin');
+    const formLogin = document.getElementById('formLogin');
+    const btnAlternarFiltro = document.getElementById('btnAlternarFiltro');
+    const menuFiltros = document.getElementById('menuFiltros');
+    const inputBusqueda = document.querySelector('.input-busqueda');
+    const selectIdioma = document.querySelector('.select-idioma');
+    const botonesAccion = document.querySelectorAll('.botones-accion .btn');
+    const btnIniciarSesionNav = document.getElementById('btnIniciarSesion');
 
-    // --- Login Modal Logic ---
+    // --- Lógica del Modal de Login ---
 
-    // Show modal on load
-    if (loginModal) {
-        // Simple check to see if we should show it (could be session based in real app)
-        // For now, always show on load as requested
-        setTimeout(() => {
-            loginModal.classList.add('active');
-        }, 100); // Small delay for fade-in effect
+    // Mostrar modal al cargar (Simulación)
+    if (modalLogin) {
+        setTimeout(( ) => {
+            modalLogin.classList.add('activo');
+        }, 300); // Pequeño retraso para la animación suave
     }
 
-    // Handle Login Submit
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+    // Manejar envío del formulario
+    if (formLogin) {
+        formLogin.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Simulate login
-            const email = loginForm.querySelector('input[type="email"]').value;
+            // Simular inicio de sesión
+            const email = formLogin.querySelector('input[type="email"]').value;
             if (email) {
-                // Close modal
-                loginModal.classList.remove('active');
-                // Optional: Update UI to show logged in state
-                if (loginBtnNav) loginBtnNav.textContent = 'Cerrar Sesión';
-                alert(`¡Bienvenido, ${email}!`);
+                // Cerrar modal
+                modalLogin.classList.remove('activo');
+
+                // Actualizar botón de navegación (Visual)
+                if (btnIniciarSesionNav) {
+                    btnIniciarSesionNav.textContent = 'Cerrar Sesión';
+                    btnIniciarSesionNav.classList.remove('btn-borde');
+                    btnIniciarSesionNav.classList.add('btn-primario'); // Cambiar estilo al estar logueado
+                }
+
+                // Mensaje de bienvenida sutil (opcional, o reemplazar por notificación toast)
+                console.log(`Usuario autenticado: ${email}`);
             }
         });
     }
 
-    // Allow opening modal via Nav Button (if needed)
-    if (loginBtnNav) {
-        loginBtnNav.addEventListener('click', (e) => {
-            if (loginBtnNav.textContent === 'Cerrar Sesión') {
-                loginBtnNav.textContent = 'Iniciar Sesión';
-                loginModal.classList.add('active');
+    // Abrir modal desde el botón del nav (si se cerró o no se ha logueado)
+    if (btnIniciarSesionNav) {
+        btnIniciarSesionNav.addEventListener('click', (e) => {
+            if (btnIniciarSesionNav.textContent === 'Cerrar Sesión') {
+                // Simular Logout
+                btnIniciarSesionNav.textContent = 'Iniciar Sesión';
+                btnIniciarSesionNav.classList.add('btn-borde');
+                btnIniciarSesionNav.classList.remove('btn-primario');
+                modalLogin.classList.add('activo');
             } else {
-                loginModal.classList.add('active');
+                modalLogin.classList.add('activo');
             }
         });
     }
 
-    // --- Search Filter Logic ---
+    // --- Lógica de Filtros de Búsqueda ---
 
-    // Toggle Dropdown
-    if (filterToggleBtn && filterDropdown) {
-        filterToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent closing immediately
-            filterDropdown.classList.toggle('show');
+    // Alternar visibilidad del menú
+    if (btnAlternarFiltro && menuFiltros) {
+        btnAlternarFiltro.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuFiltros.classList.toggle('mostrar');
         });
     }
 
-    // Close dropdown when clicking outside
+    // Cerrar menú al hacer click fuera
     document.addEventListener('click', (e) => {
-        if (filterDropdown && filterDropdown.classList.contains('show')) {
-            if (!filterDropdown.contains(e.target) && e.target !== filterToggleBtn) {
-                filterDropdown.classList.remove('show');
+        if (menuFiltros && menuFiltros.classList.contains('mostrar')) {
+            if (!menuFiltros.contains(e.target) && !btnAlternarFiltro.contains(e.target)) {
+                menuFiltros.classList.remove('mostrar');
             }
         }
     });
 
-    // Handle Filter Selection
-    if (filterDropdown) {
-        const filterLinks = filterDropdown.querySelectorAll('a');
-        filterLinks.forEach(link => {
+    // Manejar selección de opción de filtro
+    if (menuFiltros) {
+        const enlacesFiltro = menuFiltros.querySelectorAll('a');
+        enlacesFiltro.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const filterType = e.target.dataset.filter;
-                const filterText = e.target.textContent;
-                console.log(`Filtro seleccionado: ${filterType}`);
-                alert(`Filtrando por: ${filterText}`);
-                filterDropdown.classList.remove('show');
+                // Obtener texto e icono para feedback (opcional)
+                const filtroTipo = link.dataset.filtro; // p.ej: 'region'
+                // Aquí iría la lógica real de filtrado
+                console.log(`Aplicando filtro: ${filtroTipo}`);
+
+                // Cerrar menú
+                menuFiltros.classList.remove('mostrar');
             });
         });
     }
 
-    // --- Other Existing Logic ---
+    // --- Otras Interacciones ---
 
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
+    if (inputBusqueda) {
+        inputBusqueda.addEventListener('input', (e) => {
             console.log('Buscando:', e.target.value);
         });
     }
 
-    if (langSelect) {
-        langSelect.addEventListener('change', (e) => {
-            const lang = e.target.value;
-            alert(`Idioma cambiado a: ${lang === 'es' ? 'Español' : 'English'}`);
+    if (selectIdioma) {
+        selectIdioma.addEventListener('change', (e) => {
+            const idioma = e.target.value;
+            console.log(`Idioma cambiado a: ${idioma}`);
+            // Aquí recargarías la página o cambiarías los textos
         });
     }
 
-    actionBtns.forEach(btn => {
+    botonesAccion.forEach(btn => {
         btn.addEventListener('click', () => {
-            const action = btn.textContent;
-            // Solo mostrar alerta si no es algo ya manejado
-            alert(`Acción seleccionada: ${action}`);
+            // Lógica placeholder para los botones laterales
+            console.log('Acción clickeada:', btn.textContent.trim());
         });
     });
 
-    console.log('Registro de Entregas - App is ready');
+    console.log('App lista e inicializada.');
 });

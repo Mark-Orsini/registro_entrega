@@ -6,99 +6,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Entregas</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts for Inter -->
+    <!-- Google Fonts: Inter & Outfit for a more modern tech look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
-    <header class="main-header">
-        <div class="logo-container">
+    <header class="encabezado-principal">
+        <div class="contenedor-logo">
             <img src="/cropped-logo_tr2-288x67.png" alt="Logo Empresa" class="logo">
-            <span class="app-name">Registro de Entregas</span>
+            <span class="nombre-app">Registro de Entregas</span>
         </div>
 
-        <div class="search-container">
-            <div class="search-wrapper">
-                <span class="search-icon">🔍</span>
-                <input type="search" placeholder="Buscar registros..." class="search-input">
-                <div class="filter-container">
-                    <button class="filter-btn" title="Filtrar" id="filterToggleBtn">⚙️</button>
-                    <div class="filter-dropdown" id="filterDropdown">
+        <div class="contenedor-busqueda-global">
+            <div class="input-grupo-busqueda">
+                <span class="icono-busqueda"><i class="bi bi-search"></i></span>
+                <input type="search" placeholder="Buscar registros..." class="input-busqueda">
+                <div class="contenedor-filtro">
+                    <button class="btn-toggle-filtro" title="Filtrar" id="btnAlternarFiltro">
+                        <i class="bi bi-sliders2"></i>
+                    </button>
+                    <div class="menu-desplegable-filtro" id="menuFiltros">
                         <ul>
-                            <li><a href="#" data-filter="region">Región</a></li>
-                            <li><a href="#" data-filter="comuna">Comuna</a></li>
-                            <li><a href="#" data-filter="nombre">Nombre</a></li>
-                            <li><a href="#" data-filter="apellido">Apellido</a></li>
-                            <li class="divider"></li>
-                            <li><a href="#" data-filter="az">Orden Alfabético</a></li>
-                            <li><a href="#" data-filter="date-desc">Fecha: Mayor a Menor</a></li>
-                            <li><a href="#" data-filter="date-asc">Fecha: Menor a Mayor</a></li>
+                            <li><a href="#" data-filtro="region"><i class="bi bi-geo-alt"></i> Región</a></li>
+                            <li><a href="#" data-filtro="comuna"><i class="bi bi-map"></i> Comuna</a></li>
+                            <li><a href="#" data-filtro="nombre"><i class="bi bi-person"></i> Nombre</a></li>
+                            <li><a href="#" data-filtro="apellido"><i class="bi bi-person-badge"></i> Apellido</a></li>
+                            <li class="divisor"></li>
+                            <li><a href="#" data-filtro="az"><i class="bi bi-sort-alpha-down"></i> A-Z</a></li>
+                            <li><a href="#" data-filtro="fecha-desc"><i class="bi bi-calendar-event"></i> Fecha:
+                                    Reciente</a></li>
+                            <li><a href="#" data-filtro="fecha-asc"><i class="bi bi-calendar-event"></i> Fecha:
+                                    Antigua</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="auth-container">
-            <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+        <div class="contenedor-auth">
+            <button class="btn btn-borde" id="btnIniciarSesion">Iniciar Sesión</button>
         </div>
     </header>
 
-    <main class="main-layout">
-        <section class="content-area">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Nuevos Registros</h2>
+    <main class="layout-principal">
+        <section class="area-contenido">
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2><i class="bi bi-table"></i> Nuevos Registros</h2>
                 </div>
-                <div class="card-body">
-                    <div class="table-container">
-                        <table class="data-table">
+                <div class="tarjeta-cuerpo">
+                    <div class="contenedor-tabla">
+                        <table class="tabla-datos">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Dirección</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpo-tabla-registros">
+                                <!-- Filas dinámicas -->
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><span class="etiqueta etiqueta-pendiente"></span></td>
                                 </tr>
                                 <tr>
-                                    <td>#005</td>
-                                    <td>...</td>
-                                    <td>...</td>
-                                    <td>...</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><span class="etiqueta etiqueta-exito"></span></td>
                                 </tr>
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2>Destacados</h2>
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2><i class="bi bi-star"></i> Destacados</h2>
                 </div>
-                <div class="card-body">
-                    <p class="placeholder-text">No hay registros destacados por el momento.</p>
+                <div class="tarjeta-cuerpo">
+                    <p class="texto-placeholder">No hay registros destacados por el momento.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Sidebar Area (Right Column) -->
-        <aside class="sidebar-area">
-            <div class="card sidebar-card">
-                <div class="card-header">
+        <aside class="area-barra-lateral">
+            <div class="tarjeta tarjeta-lateral">
+                <div class="tarjeta-cabecera">
                     <h3>Más Opciones</h3>
                 </div>
-                <div class="card-body action-buttons">
-                    <button class="btn btn-primary btn-block">Crear Registro</button>
-                    <button class="btn btn-secondary btn-block">Editar Registro</button>
-                    <button class="btn btn-secondary btn-block">Exportar Registros</button>
+                <div class="tarjeta-cuerpo botones-accion">
+                    <button class="btn btn-primario btn-bloque">
+                        <i class="bi bi-plus-circle"></i> Crear Registro
+                    </button>
+                    <button class="btn btn-secundario btn-bloque">
+                        <i class="bi bi-pencil-square"></i> Editar Registro
+                    </button>
+                    <button class="btn btn-secundario btn-bloque">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+                    </button>
                 </div>
             </div>
 
-            <div class="card sidebar-card">
-                <div class="card-header">
+            <div class="tarjeta tarjeta-lateral">
+                <div class="tarjeta-cabecera">
                     <h3>Idioma</h3>
                 </div>
-                <div class="card-body">
-                    <select class="lang-select">
+                <div class="tarjeta-cuerpo">
+                    <select class="select-idioma">
                         <option value="es">Español</option>
                         <option value="en">English</option>
                     </select>
@@ -107,35 +133,35 @@
         </aside>
     </main>
 
-    <footer class="main-footer">
+    <footer class="pie-pagina-principal">
         <p>Copyright &copy; 2025 Making Tech</p>
     </footer>
 
-
-    <!-- Login Modal Area -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Area Modal Login -->
+    <div class="fondo-modal" id="modalLogin">
+        <div class="contenido-modal">
+            <div class="cabecera-modal">
                 <h2>Bienvenido</h2>
-                <p>Por favor inicia sesión para continuar</p>
+                <p>Ingresa tus credenciales para acceder</p>
             </div>
-            <form class="login-form" id="loginForm">
-                <div class="form-group">
-                    <label>Correo</label>
-                    <input type="email" placeholder="ejemplo@correo.com" required>
+            <form class="formulario-login" id="formLogin">
+                <div class="grupo-formulario">
+                    <label>Correo Electrónico</label>
+                    <input type="email" placeholder="nombre@empresa.com" required>
                 </div>
-                <div class="form-group">
+                <div class="grupo-formulario">
                     <label>Contraseña</label>
                     <input type="password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
-                <div class="form-footer">
-                    <a href="#">¿Olvidaste tu contraseña?</a>
-                    <a href="#" id="registerLink">Registrarme</a>
+                <button type="submit" class="btn btn-primario btn-bloque">Acceder</button>
+                <div class="pie-formulario">
+                    <a href="#">Recuperar contraseña</a>
+                    <a href="#" id="linkRegistro">Crear cuenta</a>
                 </div>
             </form>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 
