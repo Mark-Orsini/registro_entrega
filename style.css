@@ -27,6 +27,10 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--color-fondo);
@@ -35,6 +39,11 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    margin: 0;
+    padding: 0;
 }
 
 /* Encabezado */
@@ -50,6 +59,9 @@ body {
     top: 0;
     z-index: 100;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
     /* Sombra muy sutil */
 }
 
@@ -225,6 +237,8 @@ body {
     margin: 0 auto;
     width: 100%;
     flex: 1;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 @media (min-width: 1024px) {
@@ -314,8 +328,35 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     display: inline-block;
+    text-transform: capitalize;
 }
 
+/* Estados de Entrega */
+.estado-entregado {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.estado-error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.estado-proceso {
+    background-color: #fef9c3;
+    color: #a16207;
+    border: 1px solid #fde047;
+}
+
+.estado-devuelto {
+    background-color: #faf5ff;
+    color: #7c3aed;
+    border: 1px solid #d8b4fe;
+}
+
+/* Badges antiguos (mantener compatibilidad) */
 .etiqueta-pendiente {
     background-color: #fff7ed;
     color: #c2410c;
@@ -442,11 +483,18 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
 }
 
 .fondo-modal.activo {
     opacity: 1;
     visibility: visible;
+}
+
+/* Bloquear scroll del body cuando modal está activo */
+body.modal-abierto {
+    overflow: hidden;
+    padding-right: 0;
 }
 
 .contenido-modal {
@@ -460,6 +508,47 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.5);
     transform: scale(0.9);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    margin: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+/* Modal de registro más pequeño */
+#modalRegistro .contenido-modal {
+    max-width: 380px;
+    padding: 2.5rem 2rem;
+}
+
+/* Espacio entre botones de registro */
+#btnVolverLogin {
+    margin-top: 1rem;
+}
+
+/* Scrollbar personalizado para el modal */
+.contenido-modal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.contenido-modal::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 16px;
+}
+
+.contenido-modal::-webkit-scrollbar-thumb {
+    background: var(--color-borde);
+    border-radius: 16px;
+    transition: background 0.2s;
+}
+
+.contenido-modal::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secundario);
+}
+
+/* Para Firefox */
+.contenido-modal {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-borde) transparent;
 }
 
 .fondo-modal.activo .contenido-modal {
@@ -528,4 +617,232 @@ body {
 .pie-formulario a:hover {
     text-decoration: underline;
     color: var(--color-primario-oscuro);
+}
+
+/* Botón Cerrar Modal */
+.btn-cerrar-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-secundario);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.btn-cerrar-modal:hover {
+    color: var(--color-texto);
+}
+
+/* Pasos de Recuperación */
+.paso-recuperacion {
+    display: none;
+}
+
+.paso-recuperacion.activo {
+    display: block;
+}
+
+/* Texto de Ayuda */
+.texto-ayuda {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--color-secundario);
+    font-style: italic;
+}
+
+/* Mensaje de Error/Éxito */
+.mensaje-formulario {
+    padding: 0.75rem;
+    border-radius: var(--radio-borde);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.mensaje-error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.mensaje-exito {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+/* --- Responsividad Avanzada --- */
+
+/* Tablets y Móviles Grandes (< 1024px) */
+@media (max-width: 1023px) {
+    .layout-principal {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+    }
+
+    .area-barra-lateral {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+}
+
+/* Móviles (< 768px) */
+@media (max-width: 768px) {
+
+    /* Prevenir desbordamiento global */
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    .encabezado-principal {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        gap: 1rem;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+
+    .contenedor-logo {
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .contenedor-busqueda-global {
+        max-width: 100%;
+        width: 100%;
+        order: 2;
+        box-sizing: border-box;
+    }
+
+    .input-grupo-busqueda {
+        width: 100%;
+        display: flex;
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    .input-busqueda {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .contenedor-auth {
+        order: 3;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .area-barra-lateral {
+        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .layout-principal {
+        width: 100%;
+        max-width: 100vw;
+        padding: 1.5rem 1rem;
+        box-sizing: border-box;
+    }
+
+    .tarjeta {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Dispositivos "Nokia" / Pantallas muy pequeñas (< 480px) */
+@media (max-width: 480px) {
+    .encabezado-principal {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .layout-principal {
+        padding: 1rem 0.5rem;
+        gap: 1rem;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    .tarjeta-cabecera {
+        padding: 0.75rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .tarjeta-cuerpo {
+        padding: 0.75rem;
+    }
+
+    /* Ajuste para tablas */
+    .contenedor-tabla {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: auto;
+        box-sizing: border-box;
+    }
+
+    .tabla-datos th,
+    .tabla-datos td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    /* Ajuste crítico para el buscador */
+    .input-grupo-busqueda {
+        padding: 0.4rem 0.6rem;
+    }
+
+    .btn-toggle-filtro {
+        margin-left: 0.25rem;
+    }
+
+    /* Modal responsivo */
+    .contenido-modal {
+        padding: 1.5rem 1rem;
+        margin: 0.5rem;
+        width: calc(100% - 1rem);
+        max-width: calc(100vw - 1rem);
+        box-sizing: border-box;
+    }
+
+    .pie-formulario {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
 }

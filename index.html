@@ -147,21 +147,119 @@
             <form class="formulario-login" id="formLogin">
                 <div class="grupo-formulario">
                     <label>Correo Electrónico</label>
-                    <input type="email" placeholder="nombre@empresa.com" required>
+                    <input type="email" id="loginEmail" placeholder="nombre@empresa.com" required>
                 </div>
                 <div class="grupo-formulario">
                     <label>Contraseña</label>
-                    <input type="password" placeholder="••••••••" required>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
                 </div>
                 <button type="submit" class="btn btn-primario btn-bloque">Acceder</button>
                 <div class="pie-formulario">
-                    <a href="#">Recuperar contraseña</a>
+                    <a href="#" id="linkRecuperarClave">Recuperar contraseña</a>
                     <a href="#" id="linkRegistro">Crear cuenta</a>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal Recuperar Contraseña -->
+    <div class="fondo-modal" id="modalRecuperarClave">
+        <div class="contenido-modal">
+            <button class="btn-cerrar-modal" id="cerrarRecuperar">&times;</button>
+
+            <!-- Paso 1: Solicitar Correo -->
+            <div class="paso-recuperacion activo" id="pasoCorreo">
+                <div class="cabecera-modal">
+                    <h2>Recuperar Contraseña</h2>
+                    <p>Ingresa tu correo para recibir el código</p>
+                </div>
+                <form id="formSolicitarCodigo">
+                    <div class="grupo-formulario">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="recuperarEmail" placeholder="nombre@empresa.com" required>
+                    </div>
+                    <button type="submit" class="btn btn-primario btn-bloque">Enviar Código</button>
+                </form>
+            </div>
+
+            <!-- Paso 2: Verificar Código -->
+            <div class="paso-recuperacion" id="pasoCodigo">
+                <div class="cabecera-modal">
+                    <h2>Verificar Código</h2>
+                    <p>Ingresa el código enviado a tu correo</p>
+                </div>
+                <form id="formVerificarCodigo">
+                    <div class="grupo-formulario">
+                        <label>Código de Verificación</label>
+                        <input type="text" id="codigoVerificacion" placeholder="000000" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primario btn-bloque">Verificar</button>
+                    <button type="button" class="btn btn-secundario btn-bloque" id="btnVolverCorreo">Volver</button>
+                </form>
+            </div>
+
+            <!-- Paso 3: Nueva Contraseña -->
+            <div class="paso-recuperacion" id="pasoNuevaClave">
+                <div class="cabecera-modal">
+                    <h2>Nueva Contraseña</h2>
+                    <p>Crea tu nueva contraseña</p>
+                </div>
+                <form id="formNuevaClave">
+                    <div class="grupo-formulario">
+                        <label>Nueva Contraseña</label>
+                        <input type="password" id="nuevaClave" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="grupo-formulario">
+                        <label>Confirmar Contraseña</label>
+                        <input type="password" id="confirmarClave" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primario btn-bloque">Cambiar Contraseña</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registro -->
+    <div class="fondo-modal" id="modalRegistro">
+        <div class="contenido-modal">
+            <button class="btn-cerrar-modal" id="cerrarRegistro">&times;</button>
+            <div class="cabecera-modal">
+                <h2>Crear Cuenta</h2>
+                <p>Completa tus datos para registrarte</p>
+            </div>
+            <form class="formulario-login" id="formRegistro">
+                <div class="grupo-formulario">
+                    <label>Nombre</label>
+                    <input type="text" id="regNombre" placeholder="Name" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label>Apellido</label>
+                    <input type="text" id="regApellido" placeholder="Last Name" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label>RUT</label>
+                    <input type="text" id="regRut" placeholder="12.345.678-9" required>
+                    <small class="texto-ayuda">Formato: 12.345.678-9</small>
+                </div>
+                <div class="grupo-formulario">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="regEmail" placeholder="nombre@empresa.com" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label>Contraseña</label>
+                    <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label>Confirmar Contraseña</label>
+                    <input type="password" id="regConfirmPassword" placeholder="••••••••" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primario btn-bloque">Registrarse</button>
+                <button type="button" class="btn btn-secundario btn-bloque" id="btnVolverLogin">Volver al Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
     <script src="script.js"></script>
 </body>
 
