@@ -19,46 +19,61 @@
 <body>
     <header class="encabezado-principal">
         <div class="contenedor-logo">
-            <img src="/cropped-logo_tr2-288x67.png" alt="Logo Empresa" class="logo">
+            <img src="/public/making.png" alt="Logo Empresa" class="logo">
             <span class="nombre-app">Registro de Entregas</span>
         </div>
 
         <div class="contenedor-busqueda-global">
             <div class="input-grupo-busqueda">
                 <span class="icono-busqueda"><i class="bi bi-search"></i></span>
-                <input type="search" placeholder="Buscar registros..." class="input-busqueda">
+                <input type="search" placeholder="Buscar registros..." class="input-busqueda"
+                    data-i18n="buscar_placeholder">
                 <div class="contenedor-filtro">
                     <button class="btn-toggle-filtro" title="Filtrar" id="btnAlternarFiltro">
                         <i class="bi bi-sliders2"></i>
                     </button>
                     <div class="menu-desplegable-filtro" id="menuFiltros">
                         <ul>
-                            <li><a href="#" data-filtro="region"><i class="bi bi-geo-alt"></i> Región</a></li>
-                            <li><a href="#" data-filtro="comuna"><i class="bi bi-map"></i> Comuna</a></li>
-                            <li><a href="#" data-filtro="nombre"><i class="bi bi-person"></i> Nombre</a></li>
-                            <li><a href="#" data-filtro="apellido"><i class="bi bi-person-badge"></i> Apellido</a></li>
+                            <li><a href="#" data-filtro="region" data-i18n="filtro_region"><i class="bi bi-geo-alt"></i>
+                                    Región</a></li>
+                            <li><a href="#" data-filtro="comuna" data-i18n="filtro_comuna"><i class="bi bi-map"></i>
+                                    Comuna</a></li>
+                            <li><a href="#" data-filtro="nombre" data-i18n="filtro_nombre"><i class="bi bi-person"></i>
+                                    Nombre</a></li>
+                            <li><a href="#" data-filtro="apellido" data-i18n="filtro_apellido"><i
+                                        class="bi bi-person-badge"></i> Apellido</a></li>
                             <li class="divisor"></li>
-                            <li><a href="#" data-filtro="az"><i class="bi bi-sort-alpha-down"></i> A-Z</a></li>
-                            <li><a href="#" data-filtro="fecha-desc"><i class="bi bi-calendar-event"></i> Fecha:
-                                    Reciente</a></li>
-                            <li><a href="#" data-filtro="fecha-asc"><i class="bi bi-calendar-event"></i> Fecha:
-                                    Antigua</a></li>
+                            <li><a href="#" data-filtro="az" data-i18n="filtro_az"><i class="bi bi-sort-alpha-down"></i>
+                                    A-Z</a></li>
+                            <li><a href="#" data-filtro="fecha-desc" data-i18n="filtro_fecha_reciente"><i
+                                        class="bi bi-calendar-event"></i> Fecha: Reciente</a></li>
+                            <li><a href="#" data-filtro="fecha-asc" data-i18n="filtro_fecha_antigua"><i
+                                        class="bi bi-calendar-event"></i> Fecha: Antigua</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="contenedor-auth">
+        <div class="contenedor-auth" id="seccion-auth">
             <button class="btn btn-borde" id="btnIniciarSesion">Iniciar Sesión</button>
+        </div>
+        <div class="contenedor-usuario" id="seccion-usuario" style="display: none;">
+            <span class="nombre-usuario" id="navNombreUsuario">Usuario</span>
+            <button class="btn btn-primario" id="btnCerrarSesion">Salir</button>
         </div>
     </header>
 
-    <main class="layout-principal">
+    <!-- Dashboard Principal (Oculto hasta login) -->
+    <main class="layout-principal" id="dashboard-principal" style="display: none;">
         <section class="area-contenido">
             <div class="tarjeta">
                 <div class="tarjeta-cabecera">
-                    <h2><i class="bi bi-table"></i> Nuevos Registros</h2>
+                    <h2 data-i18n="registros_titulo"><i class="bi bi-table"></i> Registros de Entregas</h2>
+                    <div class="acciones-tabla">
+                        <button class="btn btn-sm btn-secundario" id="btnRecargar"><i
+                                class="bi bi-arrow-clockwise"></i></button>
+                    </div>
                 </div>
                 <div class="tarjeta-cuerpo">
                     <div class="contenedor-tabla">
@@ -66,37 +81,18 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Cliente</th>
-                                    <th>Dirección</th>
-                                    <th>Estado</th>
+                                    <th data-i18n="th_destinatario">Destinatario</th>
+                                    <th data-i18n="th_direccion">Dirección/Comuna</th>
+                                    <th data-i18n="th_producto">Producto</th>
+                                    <th data-i18n="th_estado">Estado</th>
+                                    <th data-i18n="th_acciones">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="cuerpo-tabla-registros">
                                 <!-- Filas dinámicas -->
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><span class="etiqueta etiqueta-pendiente"></span></td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><span class="etiqueta etiqueta-exito"></span></td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            <div class="tarjeta">
-                <div class="tarjeta-cabecera">
-                    <h2><i class="bi bi-star"></i> Destacados</h2>
-                </div>
-                <div class="tarjeta-cuerpo">
-                    <p class="texto-placeholder">No hay registros destacados por el momento.</p>
                 </div>
             </div>
         </section>
@@ -104,27 +100,27 @@
         <aside class="area-barra-lateral">
             <div class="tarjeta tarjeta-lateral">
                 <div class="tarjeta-cabecera">
-                    <h3>Más Opciones</h3>
+                    <h3 data-i18n="opciones_titulo">Opciones</h3>
                 </div>
                 <div class="tarjeta-cuerpo botones-accion">
-                    <button class="btn btn-primario btn-bloque">
-                        <i class="bi bi-plus-circle"></i> Crear Registro
+                    <button class="btn btn-primario btn-bloque" id="btnNuevoRegistro">
+                        <i class="bi bi-plus-circle"></i> <span data-i18n="btn_crear">Crear Registro</span>
                     </button>
-                    <button class="btn btn-secundario btn-bloque">
-                        <i class="bi bi-pencil-square"></i> Editar Registro
+                    <button class="btn btn-secundario btn-bloque" id="btnExportarPDF">
+                        <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="btn_pdf">Exportar PDF</span>
                     </button>
-                    <button class="btn btn-secundario btn-bloque">
-                        <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+                    <button class="btn btn-secundario btn-bloque" id="btnExportarExcel">
+                        <i class="bi bi-file-earmark-excel"></i> <span data-i18n="btn_excel">Exportar Excel</span>
                     </button>
                 </div>
             </div>
 
             <div class="tarjeta tarjeta-lateral">
                 <div class="tarjeta-cabecera">
-                    <h3>Idioma</h3>
+                    <h3 data-i18n="idioma_titulo">Idioma</h3>
                 </div>
                 <div class="tarjeta-cuerpo">
-                    <select class="select-idioma">
+                    <select class="select-idioma" id="selector-idioma">
                         <option value="es">Español</option>
                         <option value="en">English</option>
                     </select>
@@ -133,30 +129,39 @@
         </aside>
     </main>
 
+    <!-- Landing Page / Mensaje de Bienvenida (Visible si no hay login) -->
+    <div class="landing-container" id="landing-page">
+        <div class="hero-section">
+            <h1 data-i18n="landing_titulo">Sistema de Gestión de Entregas</h1>
+            <p data-i18n="landing_subtitulo">Por favor inicia sesión para acceder al panel de control.</p>
+        </div>
+    </div>
+
     <footer class="pie-pagina-principal">
         <p>Copyright &copy; 2025 Making Tech</p>
     </footer>
 
     <!-- Area Modal Login -->
     <div class="fondo-modal" id="modalLogin">
+
         <div class="contenido-modal">
             <div class="cabecera-modal">
-                <h2>Bienvenido</h2>
-                <p>Ingresa tus credenciales para acceder</p>
+                <h2 data-i18n="login_titulo">Bienvenido</h2>
+                <p data-i18n="login_subtitulo">Ingresa tus credenciales para acceder</p>
             </div>
             <form class="formulario-login" id="formLogin">
                 <div class="grupo-formulario">
-                    <label>Correo Electrónico</label>
+                    <label data-i18n="label_email">Correo Electrónico</label>
                     <input type="email" id="loginEmail" placeholder="nombre@empresa.com" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label>Contraseña</label>
+                    <label data-i18n="label_password">Contraseña</label>
                     <input type="password" id="loginPassword" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primario btn-bloque">Acceder</button>
+                <button type="submit" class="btn btn-primario btn-bloque" data-i18n="btn_acceder">Acceder</button>
                 <div class="pie-formulario">
-                    <a href="#" id="linkRecuperarClave">Recuperar contraseña</a>
-                    <a href="#" id="linkRegistro">Crear cuenta</a>
+                    <a href="#" id="linkRecuperarClave" data-i18n="link_recuperar">Recuperar contraseña</a>
+                    <a href="#" id="linkRegistro" data-i18n="link_crear_cuenta">Crear cuenta</a>
                 </div>
             </form>
         </div>
@@ -170,8 +175,8 @@
             <!-- Paso 1: Solicitar Correo -->
             <div class="paso-recuperacion activo" id="pasoCorreo">
                 <div class="cabecera-modal">
-                    <h2>Recuperar Contraseña</h2>
-                    <p>Ingresa tu correo para recibir el código</p>
+                    <h2 data-i18n="recuperar_titulo">Recuperar Contraseña</h2>
+                    <p data-i18n="recuperar_subtitulo">Ingresa tu correo para recibir el código</p>
                 </div>
                 <form id="formSolicitarCodigo">
                     <div class="grupo-formulario">
@@ -224,41 +229,44 @@
         <div class="contenido-modal">
             <button class="btn-cerrar-modal" id="cerrarRegistro">&times;</button>
             <div class="cabecera-modal">
-                <h2>Crear Cuenta</h2>
-                <p>Completa tus datos para registrarte</p>
+                <h2 data-i18n="registro_titulo">Crear Cuenta</h2>
+                <p data-i18n="registro_subtitulo">Completa tus datos para registrarte</p>
             </div>
             <form class="formulario-login" id="formRegistro">
                 <div class="grupo-formulario">
-                    <label>Nombre</label>
-                    <input type="text" id="regNombre" placeholder="Name" required>
+                    <label data-i18n="label_nombre">Nombre</label>
+                    <input type="text" id="regNombre" placeholder="Juan" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label>Apellido</label>
-                    <input type="text" id="regApellido" placeholder="Last Name" required>
+                    <label data-i18n="label_apellido">Apellido</label>
+                    <input type="text" id="regApellido" placeholder="Pérez" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label>RUT</label>
+                    <label data-i18n="label_rut">RUT</label>
                     <input type="text" id="regRut" placeholder="12.345.678-9" required>
-                    <small class="texto-ayuda">Formato: 12.345.678-9</small>
+                    <small class="texto-ayuda" data-i18n="formato_rut">Formato: 12.345.678-9</small>
                 </div>
                 <div class="grupo-formulario">
-                    <label>Correo Electrónico</label>
+                    <label data-i18n="label_email">Correo Electrónico</label>
                     <input type="email" id="regEmail" placeholder="nombre@empresa.com" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label>Contraseña</label>
+                    <label data-i18n="label_password">Contraseña</label>
                     <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required>
                 </div>
                 <div class="grupo-formulario">
-                    <label>Confirmar Contraseña</label>
+                    <label data-i18n="label_confirmar_password">Confirmar Contraseña</label>
                     <input type="password" id="regConfirmPassword" placeholder="••••••••" minlength="6" required>
                 </div>
-                <button type="submit" class="btn btn-primario btn-bloque">Registrarse</button>
-                <button type="button" class="btn btn-secundario btn-bloque" id="btnVolverLogin">Volver al Login</button>
+                <button type="submit" class="btn btn-primario btn-bloque"
+                    data-i18n="btn_registrarse">Registrarse</button>
+                <button type="button" class="btn btn-secundario btn-bloque" id="btnVolverLogin"
+                    data-i18n="btn_volver_login">Volver al Login</button>
             </form>
         </div>
     </div>
 
+    <script src="i18n.js"></script>
     <script src="api.js"></script>
     <script src="script.js"></script>
 </body>

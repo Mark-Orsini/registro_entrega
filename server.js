@@ -88,12 +88,12 @@ app.use((error, req, res, next) => {
 
 app.listen(PORT, () => {
     console.log('╔════════════════════════════════════════╗');
-    console.log('║   🚀 Servidor Iniciado Exitosamente   ║');
+    console.log('║    Servidor Iniciado Exitosamente      ║');
     console.log('╠════════════════════════════════════════╣');
-    console.log(`║   📡 Puerto: ${PORT}                      ║`);
-    console.log(`║   🌐 URL: http://localhost:${PORT}       ║`);
-    console.log(`║   📁 Frontend: /public                 ║`);
-    console.log(`║   🔌 API: /api                         ║`);
+    console.log(`║    Puerto: ${PORT}                   ║`);
+    console.log(`║    URL: http://localhost:${PORT}       ║`);
+    console.log(`║    Frontend: /public                   ║`);
+    console.log(`║    API: /api                           ║`);
     console.log('╚════════════════════════════════════════╝');
     console.log('');
     console.log('Presiona Ctrl+C para detener el servidor');
@@ -103,12 +103,12 @@ app.listen(PORT, () => {
 // Manejo de cierre graceful
 process.on('SIGTERM', () => {
     console.log('');
-    console.log('🛑 Servidor detenido');
+    console.log('X Servidor detenido X');
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
     console.log('');
-    console.log('🛑 Servidor detenido');
+    console.log('X Servidor detenido X');
     process.exit(0);
 });

@@ -169,6 +169,53 @@ const API = {
         });
     },
 
+    // Exportación
+    async exportPDF(filters = {}) {
+        const queryParams = new URLSearchParams(filters).toString();
+        const url = `${API_CONFIG.BASE_URL}/deliveries/export/pdf?${queryParams}`;
+        const token = getAuthToken();
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Error al exportar PDF');
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'reporte_entregas.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    },
+
+    async exportExcel(filters = {}) {
+        const queryParams = new URLSearchParams(filters).toString();
+        const url = `${API_CONFIG.BASE_URL}/deliveries/export/excel?${queryParams}`;
+        const token = getAuthToken();
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Error al exportar Excel');
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'reporte_entregas.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    },
+
     // Usuario
     async getUserProfile() {
         return await apiRequest(API_ENDPOINTS.USER_PROFILE);

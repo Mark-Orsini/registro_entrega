@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerInactividad = setTimeout(() => {
             const sesion = obtenerSesion();
             if (sesion && sesion.activo) {
-                mostrarMensaje('Tu sesión ha expirado por inactividad.', 'error');
+                mostrarMensaje(window.i18n?.t('msg_sesion_expirada') || 'Tu sesión ha expirado por inactividad.', 'error');
                 cerrarSesion();
                 if (modalLogin) modalLogin.classList.remove('activo');
             }
@@ -199,17 +199,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function actualizarUIUsuario(estaLogueado, datosSesion = null) {
-        if (!btnIniciarSesionNav) return;
+        // Actualizar botón de navegación
+        if (btnIniciarSesionNav) {
+            if (estaLogueado) {
+                const nombre = datosSesion?.nombre || 'Usuario';
+                btnIniciarSesionNav.textContent = `${nombre} - Cerrar Sesión`;
+                btnIniciarSesionNav.classList.remove('btn-borde');
+                btnIniciarSesionNav.classList.add('btn-primario');
+            } else {
+                btnIniciarSesionNav.textContent = 'Iniciar Sesión';
+                btnIniciarSesionNav.classList.add('btn-borde');
+                btnIniciarSesionNav.classList.remove('btn-primario');
+            }
+        }
 
+        // Actualizar visibilidad de secciones
         if (estaLogueado) {
-            const nombre = datosSesion?.nombre || 'Usuario';
-            btnIniciarSesionNav.textContent = `${nombre} - Cerrar Sesión`;
-            btnIniciarSesionNav.classList.remove('btn-borde');
-            btnIniciarSesionNav.classList.add('btn-primario');
+            if (seccionAuth) seccionAuth.style.display = 'none';
+            if (seccionUsuario) {
+                seccionUsuario.style.display = 'flex';
+                if (navNombreUsuario) navNombreUsuario.textContent = datosSesion?.nombre || 'Usuario';
+            }
+            if (dashboardPrincipal) dashboardPrincipal.style.display = 'block';
+            if (landingPage) landingPage.style.display = 'none';
+
+            // Cargar datos al entrar
+            cargarEntregas();
         } else {
-            btnIniciarSesionNav.textContent = 'Iniciar Sesión';
-            btnIniciarSesionNav.classList.add('btn-borde');
-            btnIniciarSesionNav.classList.remove('btn-primario');
+            if (seccionAuth) seccionAuth.style.display = 'block';
+            if (seccionUsuario) seccionUsuario.style.display = 'none';
+            if (dashboardPrincipal) dashboardPrincipal.style.display = 'none';
+            if (landingPage) landingPage.style.display = 'flex';
         }
     }
 
@@ -277,14 +297,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.success) {
                     cerrarModal(modalLogin);
                     guardarSesion(response);
-                    mostrarMensaje(`Bienvenido ${response.user?.nombre || 'Usuario'}!`, 'exito');
+                    mostrarMensaje(`${window.i18n?.t('msg_login_exitoso') || '¡Bienvenido!'} ${response.user?.nombre || 'Usuario'}!`, 'exito');
                     console.log('Login exitoso:', response);
                 } else {
-                    mostrarMensaje(response.message || 'Error al iniciar sesión', 'error', formLogin);
+                    mostrarMensaje(response.message || window.i18n?.t('msg_error_login') || 'Error al iniciar sesión', 'error', formLogin);
                 }
             } catch (error) {
                 console.error('Error de login:', error);
-                mostrarMensaje(error.message || 'Error al conectar con el servidor', 'error', formLogin);
+                mostrarMensaje(error.message || window.i18n?.t('msg_error_conexion') || 'Error al conectar con el servidor', 'error', formLogin);
             }
         });
     }
@@ -315,17 +335,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Validaciones
             if (!validarRut(rut)) {
-                mostrarMensaje('El RUT ingresado no es válido', 'error', formRegistro);
+                mostrarMensaje(window.i18n?.t('msg_rut_invalido') || 'El RUT ingresado no es válido', 'error', formRegistro);
                 return;
             }
 
             if (password !== confirmPassword) {
-                mostrarMensaje('Las contraseñas no coinciden', 'error', formRegistro);
+                mostrarMensaje(window.i18n?.t('msg_passwords_no_coinciden') || 'Las contraseñas no coinciden', 'error', formRegistro);
                 return;
             }
 
             if (password.length < 6) {
-                mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error', formRegistro);
+                mostrarMensaje(window.i18n?.t('msg_password_corta') || 'La contraseña debe tener al menos 6 caracteres', 'error', formRegistro);
                 return;
             }
 
@@ -340,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.success) {
                     cerrarModal(modalRegistro);
-                    mostrarMensaje('Registro exitoso. Por favor, inicia sesión.', 'exito');
+                    mostrarMensaje(window.i18n?.t('msg_registro_exitoso') || 'Registro exitoso. Por favor, inicia sesión.', 'exito');
                     mostrarModal(modalLogin);
                     formRegistro.reset();
                 } else {
@@ -503,82 +523,170 @@ document.addEventListener('DOMContentLoaded', () => {
     // FILTROS Y BÚSQUEDA
     // ============================================
 
-    if (btnAlternarFiltro && menuFiltros) {
-        btnAlternarFiltro.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menuFiltros.classList.toggle('mostrar');
+    // ============================================
+    // DASHBOARD Y ENTREGAS
+    // ============================================
+
+    const cuerpoTabla = document.getElementById('cuerpo-tabla-registros');
+    const seccionAuth = document.getElementById('seccion-auth');
+    const seccionUsuario = document.getElementById('seccion-usuario');
+    const navNombreUsuario = document.getElementById('navNombreUsuario');
+    const dashboardPrincipal = document.getElementById('dashboard-principal');
+    const landingPage = document.getElementById('landing-page');
+    const btnCerrarSesion = document.getElementById('btnCerrarSesion');
+    const btnRecargar = document.getElementById('btnRecargar');
+
+    // Filtros activos
+    let filtrosActuales = {};
+
+    async function cargarEntregas() {
+        if (!cuerpoTabla) return;
+
+        try {
+            cuerpoTabla.innerHTML = `<tr><td colspan="6" class="text-center">${window.i18n?.t('cargando') || 'Cargando...'}</td></tr>`;
+
+            const response = await API.getDeliveries(filtrosActuales);
+
+            if (response.success) {
+                renderizarTabla(response.data);
+            } else {
+                cuerpoTabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${window.i18n?.t('error_cargar_datos') || 'Error al cargar datos'}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error cargando entregas:', error);
+            cuerpoTabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${window.i18n?.t('msg_error_conexion') || 'Error de conexión'}</td></tr>`;
+        }
+    }
+
+    function renderizarTabla(entregas) {
+        cuerpoTabla.innerHTML = '';
+
+        if (entregas.length === 0) {
+            cuerpoTabla.innerHTML = `<tr><td colspan="6" class="text-center">${window.i18n?.t('no_registros') || 'No hay registros encontrados'}</td></tr>`;
+            return;
+        }
+
+        entregas.forEach(entrega => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>#${entrega.id}</td>
+                <td>
+                    <div class="fw-bold">${entrega.nombre_destinatario} ${entrega.apellido_destinatario}</div>
+                    <small class="text-muted">${entrega.rut_destinatario || ''}</small>
+                </td>
+                <td>
+                    <div>${entrega.direccion}</div>
+                    <small class="text-muted">${entrega.comuna_nombre || entrega.comuna}, ${entrega.region_nombre || entrega.region}</small>
+                </td>
+                <td>${entrega.producto || window.i18n?.t('na') || 'N/A'}</td>
+                <td>
+                    <span class="etiqueta ${obtenerClaseEstado(entrega.estado)}">
+                        ${traducirEstado(entrega.estado)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-icon btn-editar" title="Editar" data-id="${entrega.id}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon btn-eliminar" title="Eliminar" data-id="${entrega.id}"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+            cuerpoTabla.appendChild(tr);
+        });
+
+        // Listeners para botones de acción dentro de la tabla
+        document.querySelectorAll('.btn-editar').forEach(btn => {
+            btn.addEventListener('click', () => editarEntrega(btn.dataset.id));
+        });
+        document.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', () => eliminarEntrega(btn.dataset.id));
         });
     }
 
-    document.addEventListener('click', (e) => {
-        if (menuFiltros && menuFiltros.classList.contains('mostrar')) {
-            if (!menuFiltros.contains(e.target) && !btnAlternarFiltro.contains(e.target)) {
-                menuFiltros.classList.remove('mostrar');
+    // Funciones placeholders para edición/eliminación (se pueden implementar modal luego)
+    function editarEntrega(id) {
+        alert(`Editar entrega ID: ${id} (Implementación pendiente en modal)`);
+    }
+
+    async function eliminarEntrega(id) {
+        if (confirm('¿Estás seguro de eliminar este registro?')) {
+            try {
+                const res = await API.deleteDelivery(id);
+                if (res.success) {
+                    mostrarMensaje(window.i18n?.t('msg_entrega_eliminada') || 'Entrega eliminada', 'exito');
+                    cargarEntregas();
+                } else {
+                    mostrarMensaje('Error al eliminar', 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('Error de conexión', 'error');
             }
+        }
+    }
+
+    if (btnRecargar) {
+        btnRecargar.addEventListener('click', cargarEntregas);
+    }
+
+    // Exportación
+    const btnExportarPDF = document.getElementById('btnExportarPDF');
+    const btnExportarExcel = document.getElementById('btnExportarExcel');
+
+    if (btnExportarPDF) {
+        btnExportarPDF.addEventListener('click', async () => {
+            try {
+                await API.exportPDF(filtrosActuales);
+                mostrarMensaje(window.i18n?.t('msg_pdf_descargado') || 'PDF descargado', 'exito');
+            } catch (error) {
+                mostrarMensaje(window.i18n?.t('msg_error_exportar_pdf') || 'Error al exportar PDF', 'error');
+            }
+        });
+    }
+
+    if (btnExportarExcel) {
+        btnExportarExcel.addEventListener('click', async () => {
+            try {
+                await API.exportExcel(filtrosActuales);
+                mostrarMensaje(window.i18n?.t('msg_excel_descargado') || 'Excel descargado', 'exito');
+            } catch (error) {
+                mostrarMensaje(window.i18n?.t('msg_error_exportar_excel') || 'Error al exportar Excel', 'error');
+            }
+        });
+    }
+
+    // ============================================
+    // GESTIÓN DE IDIOMA
+    // ============================================
+
+    // Esperar a que i18n esté listo
+    window.addEventListener('load', () => {
+        if (window.i18n && selectIdioma) {
+            // Establecer idioma actual en el selector
+            selectIdioma.value = i18n.getCurrentLang();
+
+            // Listener para cambio de idioma
+            selectIdioma.addEventListener('change', (e) => {
+                i18n.setLanguage(e.target.value);
+                // Recargar tabla para traducir estados
+                const sesion = obtenerSesion();
+                if (sesion && sesion.activo) {
+                    cargarEntregas();
+                }
+            });
         }
     });
 
-    if (menuFiltros) {
-        const enlacesFiltro = menuFiltros.querySelectorAll('a');
-        enlacesFiltro.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const filtroTipo = link.dataset.filtro;
-                console.log(`Aplicando filtro: ${filtroTipo}`);
-                menuFiltros.classList.remove('mostrar');
-            });
-        });
+    function traducirEstado(estado) {
+        if (!estado) return '';
+        const key = `estado_${estado.toLowerCase().trim().replace(/\s+/g, '_')}`;
+        return window.i18n?.t(key) || estado;
     }
 
-    if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', (e) => {
-            console.log('Buscando:', e.target.value);
-        });
+
+
+    if (btnCerrarSesion) {
+        btnCerrarSesion.addEventListener('click', cerrarSesion);
     }
 
-    if (selectIdioma) {
-        selectIdioma.addEventListener('change', (e) => {
-            const idioma = e.target.value;
-            console.log(`Idioma cambiado a: ${idioma}`);
-        });
-    }
+    // Exportar funciones necesarias globalmente si es necesario
+    window.obtenerClaseEstado = obtenerClaseEstado;
 
-    botonesAccion.forEach(btn => {
-        btn.addEventListener('click', () => {
-            console.log('Acción clickeada:', btn.textContent.trim());
-        });
-    });
-
-    // ============================================
-    // INICIALIZACIÓN
-    // ============================================
-
-    verificarSesionAlInicio();
-    console.log('App lista e inicializada con persistencia y autenticación completa.');
 });
-
-// ============================================
-// EXPORTAR FUNCIONES GLOBALES
-// ============================================
-
-window.obtenerClaseEstado = function (estado) {
-    const estadoLower = estado.toLowerCase().trim();
-
-    const mapeo = {
-        'entregado': 'estado-entregado',
-        'entregada': 'estado-entregado',
-        'completado': 'estado-entregado',
-        'error': 'estado-error',
-        'fallido': 'estado-error',
-        'rechazado': 'estado-error',
-        'proceso': 'estado-proceso',
-        'en proceso': 'estado-proceso',
-        'enviado': 'estado-proceso',
-        'en camino': 'estado-proceso',
-        'devuelto': 'estado-devuelto',
-        'devuelta': 'estado-devuelto',
-        'retornado': 'estado-devuelto'
-    };
-
-    return mapeo[estadoLower] || 'etiqueta-pendiente';
-};

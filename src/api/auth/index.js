@@ -8,6 +8,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../../config/database');
+const { verificarToken } = require('../../middleware/auth');
 const { validarRUT, validarEmail } = require('../../utils/validators');
 
 // ============================================
@@ -199,10 +200,25 @@ router.post('/forgot-password', async (req, res) => {
         const expiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
         // Guardar código en la base de datos
-        await db.query(
-            'INSERT INTO codigos_recuperacion (usuario_id, codigo, expira_en) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE codigo = ?, expira_en = ?',
-            [usuarios[0].id, codigo, expiracion, codigo, expiracion]
+// Verificar si ya existe un código para este usuario
+        const [codigosExistentes] = await db.query(
+            'SELECT id FROM codigos_recuperacion WHERE usuario_id = ?',
+            [usuarios[0].id]
         );
+
+        if (codigosExistentes.length > 0) {
+            // Actualizar
+            await db.query(
+                'UPDATE codigos_recuperacion SET codigo = ?, expira_en = ? WHERE usuario_id = ?',
+                [codigo, expiracion, usuarios[0].id]
+            );
+        } else {
+            // Insertar
+            await db.query(
+                'INSERT INTO codigos_recuperacion (usuario_id, codigo, expira_en) VALUES (?, ?, ?)',
+                [usuarios[0].id, codigo, expiracion]
+            );
+        }
 
         // TODO: Enviar código por email
         // Por ahora, se devuelve en la respuesta (solo para desarrollo)
@@ -332,6 +348,81 @@ router.post('/reset-password', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al cambiar contraseña'
+        });
+    }
+});
+
+// ============================================
+// GET /api/auth/profile
+// ============================================
+// Obtiene el perfil del usuario autenticado
+
+router.get('/profile', verificarToken, async (req, res) => {
+    try {
+        const [usuarios] = await db.query(
+            'SELECT id, nombre, apellido, rut, email, rol, telefono, cargo, avatar_url, bio, fecha_registro FROM usuarios WHERE id = ?',
+            [req.usuario.id]
+        );
+
+        if (usuarios.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            user: usuarios[0]
+        });
+
+    } catch (error) {
+        console.error('Error al obtener perfil:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener perfil'
+        });
+    }
+});
+
+// ============================================
+// PUT /api/auth/profile
+// ============================================
+// Actualiza el perfil del usuario autenticado
+
+router.put('/profile', verificarToken, async (req, res) => {
+    try {
+        const { nombre, apellido, telefono, cargo, bio, avatar_url } = req.body;
+
+        await db.query(
+            `UPDATE usuarios SET 
+            nombre = COALESCE(?, nombre),
+            apellido = COALESCE(?, apellido),
+            telefono = COALESCE(?, telefono),
+            cargo = COALESCE(?, cargo),
+            bio = COALESCE(?, bio),
+            avatar_url = COALESCE(?, avatar_url)
+            WHERE id = ?`,
+            [nombre, apellido, telefono, cargo, bio, avatar_url, req.usuario.id]
+        );
+
+        // Obtener usuario actualizado
+        const [usuarios] = await db.query(
+            'SELECT id, nombre, apellido, rut, email, rol, telefono, cargo, avatar_url, bio FROM usuarios WHERE id = ?',
+            [req.usuario.id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Perfil actualizado exitosamente',
+            user: usuarios[0]
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar perfil:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar perfil'
         });
     }
 });
