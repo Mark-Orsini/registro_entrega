@@ -34,6 +34,7 @@
     "th_acciones": "Acciones",
     "estado_pendiente": "Pendiente",
     "estado_proceso": "En Proceso",
+    "estado_en_reparto": "En Reparto",
     "estado_entregado": "Entregado",
     "estado_fallido": "Fallido",
     "estado_devuelto": "Devuelto",

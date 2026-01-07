@@ -1,138 +1,69 @@
 // ============================================
-// CONFIGURACIÓN DE BASE DE DATOS (MSSQL)
+// CONFIGURACIÓN DE BASE DE DATOS (MYSQL)
 // ============================================
-// Adaptador para conectar a SQL Server manteniendo compatibilidad
-// con la sintaxis de consultas existente (estilo MySQL)
 
 require('dotenv').config();
-const sql = require('mssql');
+const mysql = require('mysql2/promise');
 
-// Configuración de la conexión a SQL Server
-const config = {
+// Configuración de la conexión a MySQL
+const dbConfig = {
+    host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    server: process.env.DB_HOST,
     database: process.env.DB_NAME,
-    port: parseInt(process.env.DB_PORT) || 1433,
-    options: {
-        encrypt: false, // Cambiar a true si se usa Azure
-        trustServerCertificate: true, // Aceptar certificados auto-firmados
-        enableArithAbort: true
-    }
+    port: parseInt(process.env.DB_PORT) || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    // Asegurar que las fechas se manejen como objetos Date de JS
+    timezone: 'Z'
 };
 
-let pool = null;
+// Crear el pool de conexiones
+const pool = mysql.createPool(dbConfig);
 
 /**
- * Establece la conexión a la base de datos
+ * Método para ejecutar consultas SQL
+ * @param {string} sqlQuery - La consulta SQL (con ? para parámetros)
+ * @param {Array} params - Los parámetros de la consulta
+ * @returns {Promise<Array>} - [filas, campos]
  */
-async function connectToDatabase() {
+async function query(sqlQuery, params = []) {
     try {
-        if (pool) return pool;
+        const [result, fields] = await pool.execute(sqlQuery, params);
 
-        console.log('🔄 Conectando a SQL Server Remoto...');
-        pool = await sql.connect(config);
-
-        console.log('✅ Conexión a SQL Server establecida exitosamente');
-        console.log(`📊 Servidor: ${config.server}`);
-        console.log(`📊 Base de datos: ${config.database}`);
-
-        return pool;
-    } catch (error) {
-        console.error('❌ Error al conectar a SQL Server:', error.message);
-        console.error('Verifica las credenciales en el archivo .env');
-        // No salimos del proceso para permitir reintentos o manejo externo si es necesario
-        throw error;
-    }
-}
-
-// Intentar conectar al inicio
-connectToDatabase().catch(err => console.error('Error inicial de conexión (no crítico):', err.message));
-
-/**
- * Convierte consultas estilo MySQL (?) a SQL Server (@p0, @p1...)
- * y maneja incompatibilidades básicas (NOW() -> GETDATE())
- */
-async function query(queryString, params = []) {
-    try {
-        if (!pool) await connectToDatabase();
-
-        const request = pool.request();
-
-        // 1. Reemplazar NOW() por GETDATE()
-        let finalQuery = queryString.replace(/NOW\(\)/gi, 'GETDATE()');
-
-        // 2. Reemplazar parámetros ? por @pIndex
-        // Usamos una función que reemplaza secuencialmente solo los ? que no estén escapados (aunque aquí asumimos inputs simples)
-        let paramIndex = 0;
-        finalQuery = finalQuery.replace(/\?/g, () => {
-            const pName = `p${paramIndex}`;
-            // Mssql requiere que añadamos el input al request object
-            request.input(pName, params[paramIndex]);
-            paramIndex++;
-            return `@${pName}`;
-        });
-
-        // 3. Manejar INSERT para devolver insertId (Identity)
-        const isInsert = /^\s*INSERT\s+INTO/i.test(finalQuery);
-        if (isInsert) {
-            // Añadimos el SELECT SCOPE_IDENTITY al final si no existe ya
-            if (!/SELECT\s+SCOPE_IDENTITY\(\)/i.test(finalQuery)) {
-                finalQuery += '; SELECT SCOPE_IDENTITY() AS insertId;';
-            }
-        }
-
-        // Ejecutar query
-        const result = await request.query(finalQuery);
-
-        // 4. Formatear respuesta para compatibilidad con mysql2
-        if (isInsert) {
-            // mysql2 devuelve [resultSetHeader] para inserts
-            // Simulamos el objeto con insertId
-            const insertId = result.recordset[0]?.insertId || 0;
+        // Normalizar la respuesta de INSERT para que el resto de la app
+        // vea un objeto con insertId compatible con el formato anterior.
+        const isInsert = /^\s*INSERT\s+INTO/i.test(sqlQuery);
+        if (isInsert && result.insertId !== undefined) {
             return [{
-                insertId: Number(insertId),
-                affectedRows: result.rowsAffected[0]
-            }, null];
+                insertId: result.insertId,
+                affectedRows: result.affectedRows
+            }, fields];
         }
 
-        // Para SELECT, devolver [filas, campos]
-        return [result.recordset, null];
-
+        return [result, fields];
     } catch (error) {
         console.error('❌ Error SQL:', error.message);
-        console.error('Query:', queryString);
+        console.error('Query:', sqlQuery);
         throw error;
     }
 }
 
-// Exportar interfaz compatible
+// Exportar interfaz
 module.exports = {
-    // Método principal usado en la app
-    query: query,
-
-    // Alias para execute (usado a veces en mysql2)
+    query,
     execute: query,
-
-    // Simular getConnection para transacciones o pool manual
+    pool,
     getConnection: async () => {
-        if (!pool) await connectToDatabase();
+        const connection = await pool.getConnection();
         return {
-            query: query,
-            execute: query,
-            release: () => { /* No-op para mssql global pool */ },
-            
-            // Simulación básica de transacciones
-            beginTransaction: async () => {
-                // Nota: Mssql maneja transacciones con objetos Transaction, no en la conexión base global.
-                // Para simplificar la migración sin reescribir todo el backend,
-                // devolvemos un objeto dummy que permie que el código "funcione" sin errores,
-                // aunque sin atomicidad real si el código original usaba la conexión para COMMIT.
-                // RECOMENDACIÓN: Refactorizar controladores críticos para usar Transactions de mssql explícitamente.
-                return true; 
-            },
-            commit: async () => { return true; },
-            rollback: async () => { return true; }
+            query: (q, p) => connection.execute(q, p),
+            execute: (q, p) => connection.execute(q, p),
+            release: () => connection.release(),
+            beginTransaction: () => connection.beginTransaction(),
+            commit: () => connection.commit(),
+            rollback: () => connection.rollback()
         };
     }
 };

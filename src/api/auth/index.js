@@ -30,7 +30,10 @@ router.post('/login', async (req, res) => {
 
         // Buscar usuario en la base de datos
         const [usuarios] = await db.query(
-            'SELECT * FROM usuarios WHERE email = ?',
+            `SELECT u.*, r.nombre as rol 
+             FROM usuarios u 
+             JOIN roles r ON u.rol_id = r.id 
+             WHERE u.email = ?`,
             [email]
         );
 
@@ -144,9 +147,9 @@ router.post('/register', async (req, res) => {
         // Hash de la contraseña
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Insertar nuevo usuario
+        // Insertar nuevo usuario (por defecto rol 'cliente')
         const [resultado] = await db.query(
-            'INSERT INTO usuarios (nombre, apellido, rut, email, password) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO usuarios (nombre, apellido, rut, email, password, rol_id) VALUES (?, ?, ?, ?, ?, (SELECT id FROM roles WHERE nombre = "cliente"))',
             [nombre, apellido, rut, email, passwordHash]
         );
 
@@ -200,7 +203,7 @@ router.post('/forgot-password', async (req, res) => {
         const expiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
         // Guardar código en la base de datos
-// Verificar si ya existe un código para este usuario
+        // Verificar si ya existe un código para este usuario
         const [codigosExistentes] = await db.query(
             'SELECT id FROM codigos_recuperacion WHERE usuario_id = ?',
             [usuarios[0].id]
@@ -240,10 +243,21 @@ router.post('/forgot-password', async (req, res) => {
     }
 });
 
-// ============================================
-// POST /api/auth/verify-code
-// ============================================
-// Verifica el código de recuperación
+/**
+ * Helper para verificar el código de recuperación
+ * @param {string} email 
+ * @param {string} code 
+ * @returns {Promise<Object|null>} - El código si es válido, null de lo contrario
+ */
+async function getValidRecoveryCode(email, code) {
+    const [codigos] = await db.query(
+        `SELECT cr.*, u.id as usuario_id FROM codigos_recuperacion cr
+         JOIN usuarios u ON cr.usuario_id = u.id
+         WHERE u.email = ? AND cr.codigo = ? AND cr.expira_en > NOW()`,
+        [email, code]
+    );
+    return codigos.length > 0 ? codigos[0] : null;
+}
 
 router.post('/verify-code', async (req, res) => {
     try {
@@ -256,15 +270,9 @@ router.post('/verify-code', async (req, res) => {
             });
         }
 
-        // Buscar código válido
-        const [codigos] = await db.query(
-            `SELECT cr.* FROM codigos_recuperacion cr
-             JOIN usuarios u ON cr.usuario_id = u.id
-             WHERE u.email = ? AND cr.codigo = ? AND cr.expira_en > NOW()`,
-            [email, code]
-        );
+        const codigoValido = await getValidRecoveryCode(email, code);
 
-        if (codigos.length === 0) {
+        if (!codigoValido) {
             return res.status(400).json({
                 success: false,
                 message: 'Código inválido o expirado'
@@ -309,14 +317,9 @@ router.post('/reset-password', async (req, res) => {
         }
 
         // Verificar código nuevamente
-        const [codigos] = await db.query(
-            `SELECT cr.*, u.id as usuario_id FROM codigos_recuperacion cr
-             JOIN usuarios u ON cr.usuario_id = u.id
-             WHERE u.email = ? AND cr.codigo = ? AND cr.expira_en > NOW()`,
-            [email, code]
-        );
+        const codigoValido = await getValidRecoveryCode(email, code);
 
-        if (codigos.length === 0) {
+        if (!codigoValido) {
             return res.status(400).json({
                 success: false,
                 message: 'Código inválido o expirado'
@@ -329,13 +332,13 @@ router.post('/reset-password', async (req, res) => {
         // Actualizar contraseña
         await db.query(
             'UPDATE usuarios SET password = ? WHERE id = ?',
-            [passwordHash, codigos[0].usuario_id]
+            [passwordHash, codigoValido.usuario_id]
         );
 
         // Eliminar código usado
         await db.query(
             'DELETE FROM codigos_recuperacion WHERE usuario_id = ?',
-            [codigos[0].usuario_id]
+            [codigoValido.usuario_id]
         );
 
         res.json({
@@ -360,7 +363,10 @@ router.post('/reset-password', async (req, res) => {
 router.get('/profile', verificarToken, async (req, res) => {
     try {
         const [usuarios] = await db.query(
-            'SELECT id, nombre, apellido, rut, email, rol, telefono, cargo, avatar_url, bio, fecha_registro FROM usuarios WHERE id = ?',
+            `SELECT u.id, u.nombre, u.apellido, u.rut, u.email, u.telefono, u.cargo, u.avatar_url, u.bio, u.creado_at as fecha_registro, r.nombre as rol 
+             FROM usuarios u 
+             JOIN roles r ON u.rol_id = r.id 
+             WHERE u.id = ?`,
             [req.usuario.id]
         );
 
@@ -408,7 +414,10 @@ router.put('/profile', verificarToken, async (req, res) => {
 
         // Obtener usuario actualizado
         const [usuarios] = await db.query(
-            'SELECT id, nombre, apellido, rut, email, rol, telefono, cargo, avatar_url, bio FROM usuarios WHERE id = ?',
+            `SELECT u.*, r.nombre as rol 
+             FROM usuarios u 
+             JOIN roles r ON u.rol_id = r.id 
+             WHERE u.id = ?`,
             [req.usuario.id]
         );
 

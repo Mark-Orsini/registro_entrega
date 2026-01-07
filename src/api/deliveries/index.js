@@ -8,79 +8,88 @@ const router = express.Router();
 const db = require('../../config/database');
 const { verificarToken } = require('../../middleware/auth');
 
+/**
+ * Helper para construir la consulta base de entregas con filtros
+ * @param {Object} filters - Filtros provenientes de req.query
+ * @returns {Object} - { query, params }
+ */
+function buildDeliveriesQuery(filters) {
+    const {
+        region_id,
+        comuna_id,
+        estado,
+        busqueda,
+        orden,
+        fecha_desde,
+        fecha_hasta
+    } = filters;
+
+    let sql = `
+        SELECT e.*, c.nombre as comuna_nombre, r.nombre as region_nombre 
+        FROM entregas e
+        JOIN comunas c ON e.comuna_id = c.id
+        JOIN regiones r ON c.region_id = r.id
+        WHERE e.borrado_at IS NULL
+    `;
+    const params = [];
+
+    if (region_id) {
+        sql += ' AND r.id = ?';
+        params.push(region_id);
+    }
+
+    if (comuna_id) {
+        sql += ' AND e.comuna_id = ?';
+        params.push(comuna_id);
+    }
+
+    if (estado) {
+        sql += ' AND e.estado = ?';
+        params.push(estado);
+    }
+
+    if (busqueda) {
+        sql += ' AND (e.nombre_destinatario LIKE ? OR e.apellido_destinatario LIKE ? OR e.producto LIKE ?)';
+        params.push(`%${busqueda}%`, `%${busqueda}%`, `%${busqueda}%`);
+    }
+
+    if (fecha_desde) {
+        sql += ' AND CAST(e.creado_at AS DATE) >= ?';
+        params.push(fecha_desde);
+    }
+
+    if (fecha_hasta) {
+        sql += ' AND CAST(e.creado_at AS DATE) <= ?';
+        params.push(fecha_hasta);
+    }
+
+    let orderBy = ' ORDER BY ';
+    switch (orden) {
+        case 'A-Z':
+            orderBy += 'e.apellido_destinatario ASC, e.nombre_destinatario ASC';
+            break;
+        case 'antigua':
+            orderBy += 'e.creado_at ASC';
+            break;
+        case 'reciente':
+        default:
+            orderBy += 'e.creado_at DESC';
+            break;
+    }
+    sql += orderBy;
+
+    return { sql, params };
+}
+
 // ============================================
 // GET /api/deliveries
 // ============================================
 // Obtiene todas las entregas con filtros opcionales
-// Filtros solicitados: Región, Comuna, Nombre, Apellido, A-Z, Fecha Reciente, Antigua, Búsqueda por nombre.
 
 router.get('/', verificarToken, async (req, res) => {
     try {
-        const {
-            region_id,
-            comuna_id,
-            estado,
-            busqueda,
-            orden,
-            fecha_desde,
-            fecha_hasta
-        } = req.query;
-
-        let query = `
-            SELECT e.*, c.nombre as comuna_nombre, r.nombre as region_nombre 
-            FROM entregas e
-            JOIN comunas c ON e.comuna_id = c.id
-            JOIN regiones r ON c.region_id = r.id
-            WHERE e.borrado_at IS NULL
-        `;
-        const params = [];
-
-        if (region_id) {
-            query += ' AND r.id = ?';
-            params.push(region_id);
-        }
-
-        if (comuna_id) {
-            query += ' AND e.comuna_id = ?';
-            params.push(comuna_id);
-        }
-
-        if (estado) {
-            query += ' AND e.estado = ?';
-            params.push(estado);
-        }
-
-        if (busqueda) {
-            query += ' AND (e.nombre_destinatario LIKE ? OR e.apellido_destinatario LIKE ? OR e.producto LIKE ?)';
-            params.push(`%${busqueda}%`, `%${busqueda}%`, `%${busqueda}%`);
-        }
-
-        if (fecha_desde) {
-            query += ' AND CAST(e.creado_at AS DATE) >= ?';
-            params.push(fecha_desde);
-        }
-
-        if (fecha_hasta) {
-            query += ' AND CAST(e.creado_at AS DATE) <= ?';
-            params.push(fecha_hasta);
-        }
-
-        let orderBy = ' ORDER BY ';
-        switch (orden) {
-            case 'A-Z':
-                orderBy += 'e.apellido_destinatario ASC, e.nombre_destinatario ASC';
-                break;
-            case 'antigua':
-                orderBy += 'e.creado_at ASC';
-                break;
-            case 'reciente':
-            default:
-                orderBy += 'e.creado_at DESC';
-                break;
-        }
-        query += orderBy;
-
-        const [entregas] = await db.query(query, params);
+        const { sql, params } = buildDeliveriesQuery(req.query);
+        const [entregas] = await db.query(sql, params);
 
         res.json({
             success: true,
@@ -101,38 +110,11 @@ router.get('/', verificarToken, async (req, res) => {
 // GET /api/deliveries/export/pdf
 // ============================================
 // Exporta las entregas a PDF
-// IMPORTANTE: Esta ruta debe estar ANTES de /:id para evitar conflictos
 
 router.get('/export/pdf', verificarToken, async (req, res) => {
     try {
-        const QueryString = req.query; // Reutilizar filtros
-        // ... Lógica de obtención de datos igual que en GET / (simplificada para no repetir) ...
-        // Nota: Idealmente refactorizar la construcción de query a una función utils, 
-        // pero por ahora duplicaremos para simplicidad y evitar romper lo existente.
-
-        const {
-            region, comuna, estado, nombre, apellido,
-            busqueda, orden, fecha_desde, fecha_hasta
-        } = req.query;
-
-        let query = 'SELECT * FROM entregas WHERE 1=1';
-        const params = [];
-
-        if (region) { query += ' AND region = ?'; params.push(region); }
-        if (comuna) { query += ' AND comuna = ?'; params.push(comuna); }
-        if (estado) { query += ' AND estado = ?'; params.push(estado); }
-        if (nombre) { query += ' AND nombre_destinatario LIKE ?'; params.push(`%${nombre}%`); }
-        if (apellido) { query += ' AND apellido_destinatario LIKE ?'; params.push(`%${apellido}%`); }
-        if (busqueda) {
-            query += ' AND (nombre_destinatario LIKE ? OR apellido_destinatario LIKE ? OR producto LIKE ?)';
-            params.push(`%${busqueda}%`, `%${busqueda}%`, `%${busqueda}%`);
-        }
-        if (fecha_desde) { query += ' AND CAST(fecha_creacion AS DATE) >= ?'; params.push(fecha_desde); }
-        if (fecha_hasta) { query += ' AND CAST(fecha_creacion AS DATE) <= ?'; params.push(fecha_hasta); }
-
-        query += ' ORDER BY fecha_creacion DESC'; // Orden por defecto para exportación
-
-        const [entregas] = await db.query(query, params);
+        const { sql, params } = buildDeliveriesQuery(req.query);
+        const [entregas] = await db.query(sql, params);
 
         const PDFDocument = require('pdfkit');
         const doc = new PDFDocument({ margin: 30, size: 'A4' });
@@ -148,10 +130,7 @@ router.get('/export/pdf', verificarToken, async (req, res) => {
         doc.fontSize(10).text(`Fecha de generación: ${new Date().toLocaleString()}`, { align: 'right' });
         doc.moveDown();
 
-        // Tabla Simple (Simulada con texto)
-        doc.fontSize(10);
-
-        // Cabecera Tabla
+        // Tabla
         const tableTop = 150;
         let y = tableTop;
 
@@ -176,7 +155,7 @@ router.get('/export/pdf', verificarToken, async (req, res) => {
 
             doc.text(entrega.id.toString(), 30, y);
             doc.text(`${entrega.nombre_destinatario} ${entrega.apellido_destinatario}`, 70, y, { width: 120, ellipsis: true });
-            doc.text(`${entrega.direccion}, ${entrega.comuna}`, 200, y, { width: 140, ellipsis: true });
+            doc.text(`${entrega.direccion}, ${entrega.comuna_nombre}`, 200, y, { width: 140, ellipsis: true });
             doc.text(entrega.producto || '-', 350, y, { width: 120, ellipsis: true });
             doc.text(entrega.estado, 480, y);
 
@@ -198,29 +177,8 @@ router.get('/export/pdf', verificarToken, async (req, res) => {
 
 router.get('/export/excel', verificarToken, async (req, res) => {
     try {
-        const {
-            region, comuna, estado, nombre, apellido,
-            busqueda, orden, fecha_desde, fecha_hasta
-        } = req.query;
-
-        let query = 'SELECT * FROM entregas WHERE 1=1';
-        const params = [];
-
-        if (region) { query += ' AND region = ?'; params.push(region); }
-        if (comuna) { query += ' AND comuna = ?'; params.push(comuna); }
-        if (estado) { query += ' AND estado = ?'; params.push(estado); }
-        if (nombre) { query += ' AND nombre_destinatario LIKE ?'; params.push(`%${nombre}%`); }
-        if (apellido) { query += ' AND apellido_destinatario LIKE ?'; params.push(`%${apellido}%`); }
-        if (busqueda) {
-            query += ' AND (nombre_destinatario LIKE ? OR apellido_destinatario LIKE ? OR producto LIKE ?)';
-            params.push(`%${busqueda}%`, `%${busqueda}%`, `%${busqueda}%`);
-        }
-        if (fecha_desde) { query += ' AND CAST(fecha_creacion AS DATE) >= ?'; params.push(fecha_desde); }
-        if (fecha_hasta) { query += ' AND CAST(fecha_creacion AS DATE) <= ?'; params.push(fecha_hasta); }
-
-        query += ' ORDER BY fecha_creacion DESC';
-
-        const [entregas] = await db.query(query, params);
+        const { sql, params } = buildDeliveriesQuery(req.query);
+        const [entregas] = await db.query(sql, params);
 
         const ExcelJS = require('exceljs');
         const workbook = new ExcelJS.Workbook();
@@ -232,17 +190,16 @@ router.get('/export/excel', verificarToken, async (req, res) => {
             { header: 'Apellido Destinatario', key: 'apellido_destinatario', width: 20 },
             { header: 'RUT', key: 'rut_destinatario', width: 15 },
             { header: 'Dirección', key: 'direccion', width: 30 },
-            { header: 'Comuna', key: 'comuna', width: 20 },
-            { header: 'Región', key: 'region', width: 20 },
-            { header: 'Teléfono', key: 'telefono', width: 15 },
-            { header: 'Email', key: 'email', width: 25 },
+            { header: 'Comuna', key: 'comuna_nombre', width: 20 },
+            { header: 'Región', key: 'region_nombre', width: 20 },
+            { header: 'Teléfono', key: 'telefono_destinatario', width: 15 },
+            { header: 'Email', key: 'email_destinatario', width: 25 },
             { header: 'Producto', key: 'producto', width: 25 },
             { header: 'Peso (Kg)', key: 'peso_kg', width: 10 },
             { header: 'Estado', key: 'estado', width: 15 },
-            { header: 'Fecha Creación', key: 'fecha_creacion', width: 20 }
+            { header: 'Fecha Creación', key: 'creado_at', width: 20 }
         ];
 
-        // Estilo Header
         worksheet.getRow(1).font = { bold: true };
 
         entregas.forEach(entrega => {
@@ -300,6 +257,16 @@ router.get('/:id', verificarToken, async (req, res) => {
     }
 });
 
+/**
+ * Genera un código de seguimiento único
+ * @returns {string} - Código con formato TRK-XXXXXXXX
+ */
+function generarCodigoSeguimiento() {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `TRK-${timestamp}${random}`;
+}
+
 // ============================================
 // POST /api/deliveries
 // ============================================
@@ -329,11 +296,13 @@ router.post('/', verificarToken, async (req, res) => {
             });
         }
 
+        const codigo_seguimiento = generarCodigoSeguimiento();
+
         const [resultado] = await db.query(
             `INSERT INTO entregas 
-            (nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, creado_por) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, req.usuario.id]
+            (codigo_seguimiento, nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, creado_por) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [codigo_seguimiento, nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, req.usuario.id]
         );
 
         const [nuevaEntrega] = await db.query(

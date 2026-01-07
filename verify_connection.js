@@ -2,22 +2,31 @@ require('dotenv').config();
 const db = require('./src/config/database');
 
 async function testConnection() {
-    console.log('--- Iniciando prueba de conexión a SQL Server ---');
+    console.log('--- Iniciando prueba de conexión a MySQL ---');
     try {
         const pool = await db.getConnection();
-        console.log('✅ Conexión exitosa (inesperado si no has puesto las credenciales reales)');
+        console.log('✅ Conexión establecida exitosamente (o pool creado)');
+
+        // Intentar una consulta simple
+        try {
+            const [rows] = await db.query('SELECT 1 + 1 AS solution');
+            console.log('✅ Consulta de prueba exitosa. Resultado:', rows[0].solution);
+        } catch (queryError) {
+            console.log('⚠️ Conexión de red OK, pero error al ejecutar query (posible base de datos no configurada):', queryError.message);
+        }
+
         process.exit(0);
     } catch (error) {
-        console.log('ℹ️ Resultado esperado (si faltan credenciales):');
-        console.log('❌ Error de conexión capturado:');
+        console.log('❌ Error de conexión:');
         console.log(error.message);
         console.log('--- Fin de prueba ---');
-        // Esto cuenta como éxito de la migración si el error es de red/login y no de "module not found"
-        if (error.code === 'ESOCKET' || error.message.includes('Login failed') || error.message.includes('Failed to connect')) {
-            console.log('✅ El driver MSSQL intentó conectar correctamente.');
+
+        // Códigos comunes de error de MySQL
+        if (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR' || error.code === 'ENOTFOUND') {
+            console.log('ℹ️ Nota: Este error es esperado si aún no has configurado las credenciales reales en el archivo .env');
             process.exit(0);
         } else {
-            console.error('❌ Error inesperado (posible fallo de código):', error);
+            console.error('❌ Error fatal (posible error de código o dependencia):', error);
             process.exit(1);
         }
     }

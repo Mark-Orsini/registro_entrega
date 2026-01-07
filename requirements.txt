@@ -1,0 +1,9 @@
+bcrypt
+cors
+dotenv
+express
+jsonwebtoken
+mysql2
+pdfkit
+exceljs
+nodemon
