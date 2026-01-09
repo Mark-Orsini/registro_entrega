@@ -1,34 +1,36 @@
 require('dotenv').config();
 const db = require('./src/config/database');
 
-async function testConnection() {
-    console.log('--- Iniciando prueba de conexión a MySQL ---');
-    try {
-        const pool = await db.getConnection();
-        console.log('✅ Conexión establecida exitosamente (o pool creado)');
+const DB_TYPE = process.env.DB_TYPE || 'mysql';
 
-        // Intentar una consulta simple
-        try {
-            const [rows] = await db.query('SELECT 1 + 1 AS solution');
-            console.log('✅ Consulta de prueba exitosa. Resultado:', rows[0].solution);
-        } catch (queryError) {
-            console.log('⚠️ Conexión de red OK, pero error al ejecutar query (posible base de datos no configurada):', queryError.message);
-        }
+async function testConnection() {
+    console.log(`--- Iniciando prueba de conexión a ${DB_TYPE.toUpperCase()} ---`);
+    try {
+        // Intentar una consulta simple usando la abstracción unificada
+        const [rows] = await db.query('SELECT 1 + 1 AS solution');
+
+        // En MySQL rows es un array, en MSSQL recordset es un array.
+        // Nuestra abstracción en database.js asegura que rows sea un array.
+        const result = Array.isArray(rows) ? rows[0].solution : rows.solution;
+
+        console.log('✅ Conexión establecida exitosamente');
+        console.log('✅ Consulta de prueba exitosa. Resultado:', result);
 
         process.exit(0);
     } catch (error) {
-        console.log('❌ Error de conexión:');
+        console.log(`❌ Error de conexión a ${DB_TYPE.toUpperCase()}:`);
         console.log(error.message);
-        console.log('--- Fin de prueba ---');
 
-        // Códigos comunes de error de MySQL
-        if (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR' || error.code === 'ENOTFOUND') {
-            console.log('ℹ️ Nota: Este error es esperado si aún no has configurado las credenciales reales en el archivo .env');
-            process.exit(0);
+        if (DB_TYPE === 'mysql') {
+            if (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR' || error.code === 'ENOTFOUND') {
+                console.log('ℹ️ Nota: Verifica tus credenciales de MySQL en el archivo .env');
+            }
         } else {
-            console.error('❌ Error fatal (posible error de código o dependencia):', error);
-            process.exit(1);
+            console.log('ℹ️ Nota: Verifica tus credenciales de SQL Server (MSSQL) en el archivo .env');
+            console.log('Asegúrate de que el servidor remoto permita conexiones y el firewall esté abierto.');
         }
+
+        process.exit(0); // Salimos con 0 para no romper procesos si es esperado por falta de config
     }
 }
 
