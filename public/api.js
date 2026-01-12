@@ -169,6 +169,11 @@ const API = {
         });
     },
 
+    // Comunas
+    async getCommunes() {
+        return await apiRequest('/comunas');
+    },
+
     // Exportación
     async exportPDF(filters = {}) {
         const queryParams = new URLSearchParams(filters).toString();

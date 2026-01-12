@@ -19,15 +19,16 @@
 <body>
     <header class="encabezado-principal">
         <div class="contenedor-logo">
-            <img src="/public/making.png" alt="Logo Empresa" class="logo">
-            <span class="nombre-app">Registro de Entregas</span>
+            <img src="making.png" alt="Logo Empresa" class="logo">
+            <span class="nombre-app" data-i18n="nombre_app">Registro de Entregas</span>
         </div>
 
         <div class="contenedor-busqueda-global">
             <div class="input-grupo-busqueda">
                 <span class="icono-busqueda"><i class="bi bi-search"></i></span>
                 <input type="search" placeholder="Buscar registros..." class="input-busqueda"
-                    data-i18n="buscar_placeholder">
+                    data-i18n="buscar_placeholder" id="inputBusqueda">
+                <span class="filtro-activo-badge" id="filtroActivoBadge" style="display: none;"></span>
                 <div class="contenedor-filtro">
                     <button class="btn-toggle-filtro" title="Filtrar" id="btnAlternarFiltro">
                         <i class="bi bi-sliders2"></i>
@@ -56,23 +57,24 @@
         </div>
 
         <div class="contenedor-auth" id="seccion-auth">
-            <button class="btn btn-borde" id="btnIniciarSesion">Iniciar Sesión</button>
+            <button class="btn btn-borde" id="btnIniciarSesion" data-i18n="btn_iniciar_sesion">Iniciar Sesión</button>
         </div>
         <div class="contenedor-usuario" id="seccion-usuario" style="display: none;">
             <span class="nombre-usuario" id="navNombreUsuario">Usuario</span>
-            <button class="btn btn-primario" id="btnCerrarSesion">Salir</button>
+            <button class="btn btn-primario" id="btnCerrarSesion" data-i18n="btn_cerrar_sesion">Salir</button>
         </div>
     </header>
 
-    <!-- Dashboard Principal (Oculto hasta login) -->
-    <main class="layout-principal" id="dashboard-principal" style="display: none;">
+    <!-- Dashboard Principal -->
+    <main class="layout-principal" id="dashboard-principal">
         <section class="area-contenido">
             <div class="tarjeta">
                 <div class="tarjeta-cabecera">
                     <h2 data-i18n="registros_titulo"><i class="bi bi-table"></i> Registros de Entregas</h2>
                     <div class="acciones-tabla">
-                        <button class="btn btn-sm btn-secundario" id="btnRecargar"><i
-                                class="bi bi-arrow-clockwise"></i></button>
+                        <button class="btn btn-icono-refrescar" id="btnRecargar" title="Refrescar registros">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="tarjeta-cuerpo">
@@ -80,6 +82,9 @@
                         <table class="tabla-datos">
                             <thead>
                                 <tr>
+                                    <th class="col-checkbox">
+                                        <input type="checkbox" id="selectAll" title="Seleccionar todos">
+                                    </th>
                                     <th>ID</th>
                                     <th data-i18n="th_destinatario">Destinatario</th>
                                     <th data-i18n="th_direccion">Dirección/Comuna</th>
@@ -128,14 +133,6 @@
             </div>
         </aside>
     </main>
-
-    <!-- Landing Page / Mensaje de Bienvenida (Visible si no hay login) -->
-    <div class="landing-container" id="landing-page">
-        <div class="hero-section">
-            <h1 data-i18n="landing_titulo">Sistema de Gestión de Entregas</h1>
-            <p data-i18n="landing_subtitulo">Por favor inicia sesión para acceder al panel de control.</p>
-        </div>
-    </div>
 
     <footer class="pie-pagina-principal">
         <p>Copyright &copy; 2025 Making Tech</p>
@@ -221,6 +218,72 @@
                     <button type="submit" class="btn btn-primario btn-bloque">Cambiar Contraseña</button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Registro -->
+    <div class="fondo-modal" id="modalCrearRegistro">
+        <div class="contenido-modal">
+            <button class="btn-cerrar-modal" id="cerrarCrearRegistro">&times;</button>
+            <div class="cabecera-modal">
+                <h2 data-i18n="crear_registro_titulo">Crear Nuevo Registro</h2>
+                <p data-i18n="crear_registro_subtitulo">Completa los datos de la entrega</p>
+            </div>
+            <form class="formulario-login" id="formCrearRegistro">
+                <div class="grupo-formulario">
+                    <label data-i18n="label_nombre_destinatario">Nombre Destinatario</label>
+                    <input type="text" id="crearNombre" placeholder="Juan" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_apellido_destinatario">Apellido Destinatario</label>
+                    <input type="text" id="crearApellido" placeholder="Pérez" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_rut_destinatario">RUT Destinatario</label>
+                    <input type="text" id="crearRut" placeholder="12.345.678-9">
+                    <small class="texto-ayuda" data-i18n="formato_rut">Formato: 12.345.678-9</small>
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_direccion">Dirección</label>
+                    <input type="text" id="crearDireccion" placeholder="Av. Principal 123" required>
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_comuna">Comuna</label>
+                    <select id="crearComuna" required>
+                        <option value="">Seleccione una comuna</option>
+                        <!-- Las opciones se cargarán dinámicamente -->
+                    </select>
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_telefono">Teléfono</label>
+                    <input type="tel" id="crearTelefono" placeholder="+56912345678">
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_email_destinatario">Email Destinatario</label>
+                    <input type="email" id="crearEmailDest" placeholder="destinatario@email.com">
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_producto">Producto</label>
+                    <input type="text" id="crearProducto" placeholder="Descripción del producto">
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_peso">Peso (Kg)</label>
+                    <input type="number" id="crearPeso" placeholder="0.0" step="0.01" min="0">
+                </div>
+                <div class="grupo-formulario">
+                    <label data-i18n="label_estado">Estado</label>
+                    <select id="crearEstado" required>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="devuelto">Devuelto</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primario btn-bloque" data-i18n="btn_crear_registro">Crear
+                    Registro</button>
+                <button type="button" class="btn btn-secundario btn-bloque" id="btnCancelarCrear"
+                    data-i18n="btn_cancelar">Cancelar</button>
+            </form>
         </div>
     </div>
 

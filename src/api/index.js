@@ -29,7 +29,12 @@ router.use('/auth', authAPI);
 // Rutas de entregas
 // /api/deliveries (GET, POST)
 // /api/deliveries/:id (GET, PUT, DELETE)
+// /api/deliveries/:id (GET, PUT, DELETE)
 router.use('/deliveries', deliveriesAPI);
+
+// Rutas de comunas
+// /api/comunas
+router.use('/comunas', require('./comunas'));
 
 // ============================================
 // RUTA DE SALUD (Health Check)

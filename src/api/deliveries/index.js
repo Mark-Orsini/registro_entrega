@@ -7,6 +7,13 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../config/database');
 const { verificarToken } = require('../../middleware/auth');
+const mysql = require('mysql2/promise');
+const mssql = require('mssql');
+const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
+
+// Aplicar middleware a todas las rutas de entregas
+router.use(verificarToken);
 
 /**
  * Helper para construir la consulta base de entregas con filtros
@@ -86,7 +93,7 @@ function buildDeliveriesQuery(filters) {
 // ============================================
 // Obtiene todas las entregas con filtros opcionales
 
-router.get('/', verificarToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const { sql, params } = buildDeliveriesQuery(req.query);
         const [entregas] = await db.query(sql, params);
@@ -111,7 +118,7 @@ router.get('/', verificarToken, async (req, res) => {
 // ============================================
 // Exporta las entregas a PDF
 
-router.get('/export/pdf', verificarToken, async (req, res) => {
+router.get('/export/pdf', async (req, res) => {
     try {
         const { sql, params } = buildDeliveriesQuery(req.query);
         const [entregas] = await db.query(sql, params);
@@ -175,7 +182,7 @@ router.get('/export/pdf', verificarToken, async (req, res) => {
 // ============================================
 // Exporta las entregas a Excel
 
-router.get('/export/excel', verificarToken, async (req, res) => {
+router.get('/export/excel', async (req, res) => {
     try {
         const { sql, params } = buildDeliveriesQuery(req.query);
         const [entregas] = await db.query(sql, params);
@@ -223,7 +230,7 @@ router.get('/export/excel', verificarToken, async (req, res) => {
 // ============================================
 // Obtiene una entrega específica por ID
 
-router.get('/:id', verificarToken, async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -272,7 +279,7 @@ function generarCodigoSeguimiento() {
 // ============================================
 // Crea una nueva entrega
 
-router.post('/', verificarToken, async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const {
             nombre_destinatario,
@@ -289,6 +296,17 @@ router.post('/', verificarToken, async (req, res) => {
             estado = 'pendiente'
         } = req.body;
 
+        // Sanitizar valores opcionales para evitar undefined en la query
+        const valores = {
+            rut: rut_destinatario || null,
+            telefono: telefono_destinatario || null,
+            email: email_destinatario || null,
+            producto: producto || null,
+            peso: peso_kg || null,
+            volumen: volumen_m3 || null,
+            obs: observaciones || null
+        };
+
         if (!nombre_destinatario || !apellido_destinatario || !direccion || !comuna_id) {
             return res.status(400).json({
                 success: false,
@@ -302,7 +320,7 @@ router.post('/', verificarToken, async (req, res) => {
             `INSERT INTO entregas 
             (codigo_seguimiento, nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, creado_por) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [codigo_seguimiento, nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, req.usuario.id]
+            [codigo_seguimiento, nombre_destinatario, apellido_destinatario, valores.rut, direccion, comuna_id, valores.telefono, valores.email, valores.producto, valores.peso, valores.volumen, valores.obs, estado, req.usuario.id]
         );
 
         const [nuevaEntrega] = await db.query(
@@ -330,7 +348,7 @@ router.post('/', verificarToken, async (req, res) => {
 // ============================================
 // Actualiza una entrega existente
 
-router.put('/:id', verificarToken, async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -347,6 +365,9 @@ router.put('/:id', verificarToken, async (req, res) => {
             observaciones,
             estado
         } = req.body;
+
+        // Helper para convertir undefined a null
+        const s = (val) => val === undefined ? null : val;
 
         const [entregaExistente] = await db.query(
             'SELECT id FROM entregas WHERE id = ? AND borrado_at IS NULL',
@@ -377,7 +398,7 @@ router.put('/:id', verificarToken, async (req, res) => {
             actualizado_por = ?,
             actualizado_at = NOW()
             WHERE id = ?`,
-            [nombre_destinatario, apellido_destinatario, rut_destinatario, direccion, comuna_id, telefono_destinatario, email_destinatario, producto, peso_kg, volumen_m3, observaciones, estado, req.usuario.id, id]
+            [s(nombre_destinatario), s(apellido_destinatario), s(rut_destinatario), s(direccion), s(comuna_id), s(telefono_destinatario), s(email_destinatario), s(producto), s(peso_kg), s(volumen_m3), s(observaciones), s(estado), req.usuario.id, id]
         );
 
         const [entregaActualizada] = await db.query(
@@ -405,7 +426,7 @@ router.put('/:id', verificarToken, async (req, res) => {
 // ============================================
 // Elimina una entrega
 
-router.delete('/:id', verificarToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 

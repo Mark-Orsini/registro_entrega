@@ -77,6 +77,28 @@ body {
     width: auto;
 }
 
+/* Usuario */
+.contenedor-usuario {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--color-borde);
+    height: 42px;
+    /* Altura fija para alineación */
+}
+
+.nombre-usuario {
+    font-weight: 500;
+    color: var(--color-texto);
+    font-size: 0.95rem;
+}
+
+/* Auth Section */
+.contenedor-auth {
+    margin-left: auto;
+}
+
 .nombre-app {
     font-family: 'Outfit', sans-serif;
     /* Fuente con más personalidad para títulos */
@@ -133,6 +155,30 @@ body {
 
 .input-busqueda:focus {
     outline: none;
+}
+
+/* Filter Badge */
+.filtro-activo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--color-primario);
+    color: white;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+}
+
+.filtro-activo-badge i {
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.filtro-activo-badge i:hover {
+    opacity: 0.8;
 }
 
 /* Filtros */
@@ -239,6 +285,14 @@ body {
     flex: 1;
     box-sizing: border-box;
     overflow-x: hidden;
+    transition: filter 0.3s ease;
+}
+
+/* Blur effect cuando no hay sesión */
+.layout-principal.dashboard-blur {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
 }
 
 @media (min-width: 1024px) {
@@ -269,6 +323,7 @@ body {
     border-bottom: 1px solid var(--color-borde);
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .tarjeta-cabecera h2,
@@ -280,6 +335,31 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.acciones-tabla {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icono-refrescar {
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    color: var(--color-secundario);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icono-refrescar:hover {
+    background: var(--color-primario);
+    color: white;
+    border-color: var(--color-primario);
+    transform: rotate(90deg);
 }
 
 .tarjeta-cuerpo {
@@ -319,6 +399,42 @@ body {
 
 .tabla-datos tr:last-child td {
     border-bottom: none;
+}
+
+/* Checkbox column */
+.col-checkbox {
+    width: 40px;
+    text-align: center;
+}
+
+.tabla-datos input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primario);
+}
+
+.tabla-datos tr.fila-seleccionada {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Botones de acción en tabla */
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    color: var(--color-secundario);
+    transition: color 0.2s;
+    font-size: 1rem;
+}
+
+.btn-icon:hover {
+    color: var(--color-primario);
+}
+
+.btn-eliminar:hover {
+    color: #dc2626;
 }
 
 /* Etiquetas (Badges) */
@@ -680,6 +796,47 @@ body.modal-abierto {
     background-color: #f0fdf4;
     color: #15803d;
     border: 1px solid #86efac;
+}
+
+/* Toast Notifications */
+.notificacion-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radio-borde);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(450px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-left: 4px solid var(--color-primario);
+}
+
+.notificacion-toast.mostrar {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notificacion-exito {
+    border-left-color: #15803d;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.notificacion-error {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.notificacion-info {
+    border-left-color: var(--color-primario);
+    background: #eff6ff;
+    color: #1e40af;
 }
 
 /* --- Responsividad Avanzada --- */
