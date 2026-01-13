@@ -9,6 +9,7 @@ router.get('/', async (req, res) => {
             SELECT c.id, c.nombre, r.nombre as region_nombre 
             FROM comunas c
             JOIN regiones r ON c.region_id = r.id
+            WHERE r.codigo_iso = 'RM'
             ORDER BY c.nombre ASC
         `;
 

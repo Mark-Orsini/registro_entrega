@@ -1,8 +1,8 @@
 // ============================================
-// ROUTER CENTRAL DE LA API
+// “TORRE DE CONTROL” DE LA API
 // ============================================
-// Este archivo combina todos los módulos de la API
-// y los organiza bajo sus respectivas rutas
+// Aquí llegan todas las peticiones y se derivan a su archivo correspondiente.
+// Ejemplo: si piden algo de usuarios, lo manda a auth.js
 
 const express = require('express');
 const router = express.Router();
@@ -15,7 +15,7 @@ const authAPI = require('./auth');
 const deliveriesAPI = require('./deliveries');
 
 // ============================================
-// MONTAR RUTAS DE LOS MÓDULOS
+// CONEXIÓN DE RUTAS
 // ============================================
 
 // Rutas de autenticación
@@ -37,7 +37,8 @@ router.use('/deliveries', deliveriesAPI);
 router.use('/comunas', require('./comunas'));
 
 // ============================================
-// RUTA DE SALUD (Health Check)
+// CHEQUEO DE ESTADO (Health Check)
+// Para ver si la API está viva y respondiendo.
 // ============================================
 
 router.get('/health', (req, res) => {
@@ -50,7 +51,8 @@ router.get('/health', (req, res) => {
 });
 
 // ============================================
-// INFORMACIÓN DE LA API
+// ÍNDICE DE LA API
+// Si entras a /api te muestra todo lo que puedes hacer.
 // ============================================
 
 router.get('/', (req, res) => {

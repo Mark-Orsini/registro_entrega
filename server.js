@@ -11,9 +11,13 @@ const path = require('path');
 const readline = require('readline-sync');
 const mysql = require('mysql2/promise');
 const mssql = require('mssql');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 /**
- * Verifica la disponibilidad de las bases de datos
+ * Función: checkAvailability
+ * Prueba si podemos conectarnos a MySQL y SQL Server.
+ * Retorna un reporte de cuál funciona y cuál no.
  */
 async function checkAvailability() {
     const results = {
@@ -63,7 +67,10 @@ async function checkAvailability() {
 }
 
 /**
- * Función principal para iniciar el servidor con selección de DB
+ * Función Principal (startServer)
+ * 1. Revisa las bases de datos.
+ * 2. Te pregunta cuál quieres usar.
+ * 3. Enciende el servidor en el puerto 3000.
  */
 async function startServer() {
     console.clear();
@@ -101,11 +108,29 @@ async function startServer() {
     const PORT = process.env.PORT || 3000;
 
     // ============================================
-    // MIDDLEWARE
+    // CONFIGURACIÓN (Middleware)
+    // Cosas necesarias para que el server entienda JSON y acepte peticiones
     // ============================================
+    // ============================================
+    // SEGURIDAD & MIDDLEWARE
+    // ============================================
+
+    // 1. Helmet: Protege headers HTTP
+    app.use(helmet());
+
+    // 2. Rate Limiting Global: Evita ataques DDoS básicos
+    const limiter = rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutos
+        max: 100, // Límite de 100 peticiones por IP
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { success: false, message: 'Demasiadas peticiones, intenta más tarde.' }
+    });
+    app.use(limiter);
+
     app.use(cors());
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json({ limit: '10kb' })); // Limitar tamaño de body para evitar sobrecarga
+    app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
     app.use((req, res, next) => {
         console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -113,12 +138,14 @@ async function startServer() {
     });
 
     // ============================================
-    // SERVIR ARCHIVOS ESTÁTICOS
+    // CARPETA PÚBLICA (Frontend)
+    // Aquí le decimos que muestre los archivos de la carpeta 'public'
     // ============================================
     app.use(express.static(path.join(__dirname, 'public')));
 
     // ============================================
-    // RUTAS DE LA API
+    // RUTAS (Los caminos de la API)
+    // Todo lo que empiece con /api se va al manejador de rutas principal
     // ============================================
     // Nota: El router de la API debe requerirse DESPUÉS de establecer process.env.DB_TYPE
     const apiRouter = require('./src/api');
@@ -129,7 +156,7 @@ async function startServer() {
     });
 
     // ============================================
-    // MANEJO DE ERRORES
+    // ERRORES (Si algo sale mal)
     // ============================================
     app.use((req, res) => {
         res.status(404).json({ success: false, message: 'Ruta no encontrada' });
@@ -145,7 +172,7 @@ async function startServer() {
     });
 
     // ============================================
-    // INICIAR ESCUCHA
+    // ENCENDER EL SERVIDOR
     // ============================================
     app.listen(PORT, () => {
         console.log('╔════════════════════════════════════════╗');

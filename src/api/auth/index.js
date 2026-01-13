@@ -10,13 +10,23 @@ const jwt = require('jsonwebtoken');
 const db = require('../../config/database');
 const { verificarToken } = require('../../middleware/auth');
 const { validarRUT, validarEmail } = require('../../utils/validators');
+const rateLimit = require('express-rate-limit');
+
+// Limiter estricto para Login/Register (evita fuerza bruta)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 5, // Solo 5 intentos por IP
+    message: { success: false, message: 'Demasiados intentos fallidos, espera 15 minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
 
 // ============================================
 // POST /api/auth/login
 // ============================================
 // Permite a un usuario iniciar sesión
 
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -95,7 +105,7 @@ router.post('/login', async (req, res) => {
 // ============================================
 // Registra un nuevo usuario
 
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
     try {
         const { nombre, apellido, rut, email, password } = req.body;
 

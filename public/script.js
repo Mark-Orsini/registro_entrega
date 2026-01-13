@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ============================================
-    // ELEMENTOS DEL DOM
+    //  ELEMENTOS DEL SITIO (DOM)
+    //  Aquí capturamos todos los botones, formularios y cosas de la pantalla
+    //  para poder usarlos después.
     // ============================================
 
     // Modales
@@ -41,10 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let codigoRecuperacion = '';
 
     // ============================================
-    // FUNCIONES DE VALIDACIÓN
+    //  VALIDACIONES (Que los datos estén bien)
     // ============================================
 
-    // Validar RUT chileno
+    // Función: validarRut
+    // Revisa si el RUT escrito es real matemáticamente.
+    // Retorna true si está bueno, false si está malo.
     function validarRut(rut) {
         // Limpiar formato
         rut = rut.replace(/\./g, '').replace(/-/g, '');
@@ -69,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return dv === dvCalculado;
     }
 
-    // Formatear RUT mientras se escribe
+    // Función: formatearRut
+    // Le pone puntitos y guión al RUT mientras la persona escribe.
+    // Ejemplo: de "123456789" pasa a "12.345.678-9"
     function formatearRut(rut) {
         rut = rut.replace(/\./g, '').replace(/-/g, '');
 
@@ -88,6 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // FUNCIONES DE ESTADO DE ENTREGA
     // ============================================
 
+    // Función: obtenerClaseEstado
+    // Le da un color a la etiqueta según el estado del envío.
+    // Verde si llegó, rojo si falló, amarillo si va en camino.
     function obtenerClaseEstado(estado) {
         const estadoLower = estado.toLowerCase().trim();
 
@@ -101,7 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'proceso': 'estado-proceso',
             'en proceso': 'estado-proceso',
             'enviado': 'estado-proceso',
-            'en camino': 'estado-proceso',
+            'en_reparto': 'estado-proceso', // Mismo estilo que proceso
+            'en reparto': 'estado-proceso',
             'devuelto': 'estado-devuelto',
             'devuelta': 'estado-devuelto',
             'retornado': 'estado-devuelto'
@@ -111,9 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // GESTIÓN DE SESIÓN
+    //  MANEJO DE SESIÓN (Logins y eso)
     // ============================================
 
+    // Función: guardarSesion
+    // Guarda los datos del usuario en el navegador para que no tenga
+    // que loguearse a cada rato (dura 5 min inactivo).
     function guardarSesion(datos) {
         const estadoSesion = {
             activo: true,
@@ -132,12 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
         iniciarListenerInactividad();
     }
 
+    // Función: obtenerSesion
+    // Recupera los datos guardados del usuario actual.
     function obtenerSesion() {
         const sesionStr = localStorage.getItem(CLAVE_SESION);
         if (!sesionStr) return null;
         return JSON.parse(sesionStr);
     }
 
+    // Función: cerrarSesion
+    // Borra todo rastro del usuario y lo manda al login.
     function cerrarSesion() {
         localStorage.removeItem(CLAVE_SESION);
         removeAuthToken();
@@ -729,6 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
 
     const cuerpoTabla = document.getElementById('cuerpo-tabla-registros');
+    // ... referencias a otras partes de la pantalla ...
     const seccionAuth = document.getElementById('seccion-auth');
     const seccionUsuario = document.getElementById('seccion-usuario');
     const navNombreUsuario = document.getElementById('navNombreUsuario');
@@ -740,6 +758,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Filtros activos
     let filtrosActuales = {};
 
+    // Función: cargarEntregas
+    // Pide al servidor la lista de envíos y la dibuja en la tabla.
+    // También maneja si hay error de conexión.
     async function cargarEntregas() {
         if (!cuerpoTabla) return;
 

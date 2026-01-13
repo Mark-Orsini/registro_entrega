@@ -4,9 +4,9 @@
 // Validadores reutilizables para RUT, email, etc.
 
 /**
- * Valida un RUT chileno
- * @param {string} rut - RUT con o sin formato (12.345.678-9 o 12345678-9)
- * @returns {boolean} - true si el RUT es válido
+ * Validar RUT
+ * Revisa que el RUT tenga el formato correcto y que el dígito verificador coincida.
+ * @param {string} rut - Ejemplo: 12.345.678-9
  */
 function validarRUT(rut) {
     // Limpiar formato (puntos y guión)
@@ -44,9 +44,8 @@ function validarRUT(rut) {
 }
 
 /**
- * Valida un email
- * @param {string} email - Email a validar
- * @returns {boolean} - true si el email es válido
+ * Validar Email
+ * Verifica que el texto parezca un correo real (algo@algo.com).
  */
 function validarEmail(email) {
     // Expresión regular para validar email
@@ -55,9 +54,9 @@ function validarEmail(email) {
 }
 
 /**
- * Valida la fortaleza de una contraseña
- * @param {string} password - Contraseña a validar
- * @returns {Object} - { valid: boolean, message: string, strength: string }
+ * Validar Contraseña
+ * Revisa qué tan segura es la contraseña (largo, mayúsculas, números).
+ * Retorna: si es válida y qué nivel de fuerza tiene (débil, media, fuerte).
  */
 function validarPassword(password) {
     const resultado = {
@@ -95,9 +94,8 @@ function validarPassword(password) {
 }
 
 /**
- * Valida un número de teléfono chileno
- * @param {string} telefono - Teléfono a validar
- * @returns {boolean} - true si el teléfono es válido
+ * Validar Teléfono
+ * Acepta números chilenos de 8 o 9 dígitos, con o sin +56.
  */
 function validarTelefono(telefono) {
     // Limpiar formato
@@ -113,9 +111,8 @@ function validarTelefono(telefono) {
 }
 
 /**
- * Sanitiza un string para prevenir inyección SQL
- * @param {string} string - String a sanitizar
- * @returns {string} - String sanitizado
+ * Sanitizar Texto (Seguridad)
+ * Limpia el texto de cosas peligrosas como scripts (<script>) para evitar hackeos.
  */
 function sanitizarString(string) {
     if (typeof string !== 'string') {
@@ -129,9 +126,8 @@ function sanitizarString(string) {
 }
 
 /**
- * Valida que un campo no esté vacío
- * @param {any} valor - Valor a validar
- * @returns {boolean} - true si no está vacío
+ * Validar que no esté vacío
+ * Simple chequeo para ver si escribieron algo.
  */
 function noVacio(valor) {
     if (valor === null || valor === undefined) {

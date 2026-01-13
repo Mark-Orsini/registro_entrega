@@ -566,3 +566,70 @@ SELECT * FROM roles;
 
 -- Verificar regiones insertadas
 SELECT COUNT(*) AS total_regiones FROM regiones;
+
+USE registro_entregas;
+
+-- 1. Desactivar la verificación de llaves foráneas temporalmente
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 2. Limpiar las comunas de la RM (basado en el código ISO)
+DELETE FROM comunas 
+WHERE region_id = (SELECT id FROM regiones WHERE codigo_iso = 'RM');
+
+-- 3. Insertar el listado completo de las 52 comunas de la RM
+INSERT INTO comunas (region_id, nombre) VALUES
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Cerrillos'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Cerro Navia'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Conchalí'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'El Bosque'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Estación Central'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Huechuraba'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Independencia'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'La Cisterna'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'La Florida'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'La Granja'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'La Pintana'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'La Reina'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Las Condes'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Lo Barnechea'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Lo Espejo'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Lo Prado'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Macul'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Maipú'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Ñuñoa'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Pedro Aguirre Cerda'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Peñalolén'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Providencia'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Pudahuel'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Quilicura'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Quinta Normal'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Recoleta'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Renca'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San Joaquín'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San Miguel'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San Ramón'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Santiago'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Vitacura'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Puente Alto'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Pirque'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San José de Maipo'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Colina'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Lampa'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Tiltil'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San Bernardo'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Buin'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Calera de Tango'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Paine'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Melipilla'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Alhué'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Curacaví'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'María Pinto'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'San Pedro'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Talagante'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'El Monte'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Isla de Maipo'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Padre Hurtado'),
+((SELECT id FROM regiones WHERE codigo_iso = 'RM'), 'Peñaflor');
+
+-- 4. Reactivar la verificación de llaves foráneas
+SET FOREIGN_KEY_CHECKS = 1;
