@@ -62,6 +62,3 @@ El sistema estará accesible en: `http://localhost:3000`
 *   `/src`: Lógica del servidor, API y configuración.
 *   `/public`: Interfaz de usuario (HTML, CSS, JS).
 *   `/database`: Scripts SQL para inicialización.
-
----
-© 2025 Making Tech. Todos los derechos reservados.
